@@ -1,36 +1,34 @@
+#include <iostream>
 #include "magics.h"
 #include "utils.h"
 #include "types.h"
 #include "bitboard.h"
 
+using namespace std;
+
 namespace eia_v0_5
 {
-    inline U64 Magics::r_att(U64 occ, SQ sq)
+    U64 r_att(U64 occ, SQ sq)
     {
-        U64 * ptr = rTable[sq].ptr;
-        occ      |= rTable[sq].notmask;
-        occ      *= rTable[sq].blackmagic;
+        U64 * ptr = M->rTable[sq].ptr;
+        occ      |= M->rTable[sq].notmask;
+        occ      *= M->rTable[sq].blackmagic;
         occ     >>= 64 - 12;
         return ptr[occ];
     }
 
-    inline U64 Magics::b_att(U64 occ, SQ sq)
+    U64 b_att(U64 occ, SQ sq)
     {
-        U64 * ptr = bTable[sq].ptr;
-        occ      |= bTable[sq].notmask;
-        occ      *= bTable[sq].blackmagic;
+        U64 * ptr = M->bTable[sq].ptr;
+        occ      |= M->bTable[sq].notmask;
+        occ      *= M->bTable[sq].blackmagic;
         occ     >>= 64 - 9;
         return ptr[occ];
     }
 
-    U64 Magics::rand64_few()
-    {
-        return rand64() & rand64() & rand64();
-    }
-
     U64 Magics::index_to_u64(int index, int bits, U64 mask)
     {
-        U64 result = 0ull;
+        U64 result = ~mask;
         for (int i = 0; i < bits; i++)
         {
             int j = bitscan(mask);
@@ -40,56 +38,97 @@ namespace eia_v0_5
         return result;
     }
 
-    const U64 outer_mask = RANK_1 | RANK_8 | FILE_A | FILE_H;
-    const int dirs[2][4][2] =
+    Dir dirs[2][4] =
     {
-        {{1, 0}, {0, 1}, {-1, 0}, {0, -1}},   // Rook
-        {{1, 1}, {1, -1}, {-1, 1}, {-1, -1}} // Bishop
+        {Dir::U, Dir::D, Dir::L, Dir::R},   // Rook
+        {Dir::DL, Dir::DR, Dir::UL, Dir::UR} // Bishop
     };
 
-    U64 Magics::get_mask(SlidingPiece sp, SQ sq)
+    U64 Magics::get_mask(bool bishop, SQ sq)
     {
         U64 result = 0ull;
-        for (auto dir : dirs[+sp])
+        for (auto dir : dirs[+bishop])
         {
-            int x = x_(sq);
-            int y = y_(sq);
+            U64 pre = 0ull;
+            U64 bit = BIT << sq;
 
             while (true)
             {
-                x += dir[0];
-                y += dir[1];
-                U64 bit = BIT << sq_(x, y);
-                if (bit & outer_mask) break;
+                bit = shift(bit, dir);
+                if (!bit) break;
 
-                result |= bit;
-            }
-        }
-        return ~result;
-    }
-
-    U64 Magics::get_att(SlidingPiece sp, SQ sq, U64 block)
-    {
-        U64 result = 0ull;
-        for (auto dir : dirs[+sp])
-        {
-            int x = x_(sq);
-            int y = y_(sq);
-
-            while (true)
-            {
-                x += dir[0];
-                y += dir[1];
-                U64 bit = BIT << sq_(x, y);
-                result |= bit;
-                if (bit & block) break;
+                result |= pre;
+                pre = bit;
             }
         }
         return result;
     }
 
+    U64 Magics::get_att(bool bishop, SQ sq, U64 blocks)
+    {
+        U64 result = 0ull;
+        for (auto dir : dirs[+bishop])
+        {
+            U64 bit = BIT << sq;
+            while (true)
+            {
+                bit = shift(bit, dir);
+                result |= bit;
+                if (!bit || bit & blocks) break;
+            }
+        }
+        return result;
+    }
+
+    inline int Magics::transform(U64 blocks, U64 magic, int bits)
+    {
+        return static_cast<int>((blocks * magic) >> (64 - bits));
+    }
+
+    void Magics::build_magics()
+    {
+        for (int sq = 0; sq < 64; sq++) // Rooks
+        {
+            U64 mask = get_mask(0, SQ(sq));
+            U64 magic = rTable[sq].blackmagic;
+            int bits = popcnt(mask);
+
+            for (int i = 0; i < (1 << bits); i++)
+            {
+                U64 blocks = index_to_u64(i, bits, mask);
+                int offset = transform(blocks, magic, 12);
+                U64 * ptr  = rTable[sq].ptr;
+
+                ptr[offset] = get_att(0, SQ(sq), blocks);
+            };
+
+            rTable[sq].notmask = ~mask;
+            rTable[sq].blackmagic = magic;
+        }
+
+        for (int sq = 0; sq < 64; sq++) // Bishops
+        {
+            U64 mask = get_mask(1, SQ(sq));
+            U64 magic = bTable[sq].blackmagic;
+            int bits = popcnt(mask);
+
+            for (int i = 0; i < (1 << bits); i++)
+            {
+                U64 blocks = index_to_u64(i, bits, mask);
+                int offset = transform(blocks, magic, 9);
+                U64 * ptr  = bTable[sq].ptr;
+
+                ptr[offset] = get_att(1, SQ(sq), blocks);
+            };
+
+            bTable[sq].notmask = mask;
+            bTable[sq].blackmagic = magic;
+        }
+        cout << endl;
+    }
+
     Magics::Magics()
     {
-        // TODO: init masks and attacks
+        build_magics();
     }
 }

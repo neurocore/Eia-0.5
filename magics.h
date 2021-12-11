@@ -5,7 +5,6 @@ namespace eia_v0_5
 {
     class Magics // Black Magics were discovered by Volker Annuss
     {
-		enum SlidingPiece { Rook, Bishop };
         struct Entry
         {
             U64 * ptr;
@@ -13,15 +12,14 @@ namespace eia_v0_5
             U64 blackmagic;
         };
 
-		U64 rand64_few();
 		U64 index_to_u64(int index, int bits, U64 mask);
-		U64 get_mask(SlidingPiece sp, SQ sq);
-		U64 get_att(SlidingPiece sp, SQ sq, U64 block);
+		U64 get_mask(bool bishop, SQ sq);
+		U64 get_att(bool bishop, SQ sq, U64 blocks);
+		inline int transform(U64 blocks, U64 magic, int bits);
+		void build_magics();
 
 	public:
 		Magics();
-        inline U64 r_att(U64 occ, SQ sq);
-        inline U64 b_att(U64 occ, SQ sq);
 
 	private:
         U64 att_table[88507];
@@ -160,6 +158,11 @@ namespace eia_v0_5
 			{ att_table +  8555, 0ull, 0xee73fffbffbb77feull },
 			{ att_table +  1009, 0ull, 0x0002000308482882ull }
 		};
+		friend U64 r_att(U64 occ, SQ sq);
+        friend U64 b_att(U64 occ, SQ sq);
     };
+
 	extern Magics * M;
+	extern U64 r_att(U64 occ, SQ sq);
+    extern U64 b_att(U64 occ, SQ sq);
 }

@@ -36,5 +36,10 @@ namespace eia_v0_5
         return x < y ? lt : (y < x ? gt : eq);
     }
 
+    template <typename T> int sgn(T val)
+    {
+        return (T(0) < val) - (val < T(0));
+    }
+
     extern U64 rand64();
 }

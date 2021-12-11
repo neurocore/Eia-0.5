@@ -1,10 +1,7 @@
-#include <iostream>
 #include "magics.h"
 #include "utils.h"
 #include "types.h"
 #include "bitboard.h"
-
-using namespace std;
 
 namespace eia_v0_5
 {
@@ -124,7 +121,6 @@ namespace eia_v0_5
             bTable[sq].notmask = mask;
             bTable[sq].blackmagic = magic;
         }
-        cout << endl;
     }
 
     Magics::Magics()

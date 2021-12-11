@@ -1,6 +1,9 @@
 #include <intrin.h>
+#include "utils.h"
 #include "consts.h"
 #include "bitboard.h"
+
+using namespace std;
 
 namespace eia_v0_5
 {
@@ -12,6 +15,23 @@ namespace eia_v0_5
             for (U64 j = +i; j; j = rlsb(j)) cnt++;
             lut[i] = cnt;
         }
+    }
+
+    ostream & operator << (ostream & os, const BitBoard & bb)
+    {
+        for (int y = 7; y >= 0; y--)
+        {
+            for (int x = 0; x < 8; x++)
+            {
+                SQ sq = sq_(x, y);
+                U64 bit = BIT << sq;
+                char ch = bb.val & bit ? '*' : '.';
+                os << ch;
+            }
+            os << endl;
+        }
+        os << endl;
+        return os;
     }
 
     inline U64 lsb(U64 bb)

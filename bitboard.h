@@ -1,6 +1,9 @@
 #pragma once
+#include <ostream>
 #include <array>
 #include "types.h"
+
+using std::ostream;
 
 namespace eia_v0_5
 {
@@ -28,6 +31,9 @@ namespace eia_v0_5
         friend int popcnt(U64 bb);
         friend int bitscan(U64 bb);
     };
+
+    struct BitBoard { U64 val; }; // newtype idiom
+    ostream & operator << (ostream & os, const BitBoard & bb);
 
     extern BBTables * BBT;
     extern U64 lsb(U64 bb);

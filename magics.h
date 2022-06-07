@@ -160,9 +160,11 @@ namespace eia_v0_5
 		};
 		friend U64 r_att(U64 occ, SQ sq);
         friend U64 b_att(U64 occ, SQ sq);
+        friend U64 q_att(U64 occ, SQ sq);
     };
 
 	extern Magics * M;
 	extern U64 r_att(U64 occ, SQ sq);
     extern U64 b_att(U64 occ, SQ sq);
+    extern U64 q_att(U64 occ, SQ sq);
 }

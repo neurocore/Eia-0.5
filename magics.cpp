@@ -23,6 +23,11 @@ namespace eia_v0_5
         return ptr[occ];
     }
 
+    U64 q_att(U64 occ, SQ sq)
+    {
+        return r_att(occ, sq) | b_att(occ, sq);
+    }
+
     U64 Magics::index_to_u64(int index, int bits, U64 mask)
     {
         U64 result = ~mask;
@@ -118,7 +123,7 @@ namespace eia_v0_5
                 ptr[offset] = get_att(1, SQ(sq), blocks);
             };
 
-            bTable[sq].notmask = mask;
+            bTable[sq].notmask = ~mask;
             bTable[sq].blackmagic = magic;
         }
     }

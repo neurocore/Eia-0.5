@@ -26,6 +26,8 @@ namespace eia_v0_5
         A8, B8, C8, D8, E8, F8, G8, H8, SQUARE_N
     };
 
+    extern inline U64 bit(SQ sq) { return 1ull << sq; }
+
     enum class Dir { U, D, L, R, UL, UR, DL, DR };
 
     enum Castling : U8
@@ -36,4 +38,9 @@ namespace eia_v0_5
         WOOO = 1 << 3,
         CALL = BOO | WOO | BOOO | WOOO
     };
+
+    const U64 SPAN_WOO  = bit(F1) | bit(G1);
+    const U64 SPAN_WOOO = bit(B1) | bit(C1) | bit(D1);
+    const U64 SPAN_BOO  = bit(F8) | bit(G8);
+    const U64 SPAN_BOOO = bit(B8) | bit(C8) | bit(D8);
 }

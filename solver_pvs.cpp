@@ -1,11 +1,16 @@
+#include <cassert>
+#include <iostream>
 #include "solver_pvs.h"
+#include "movelist.h"
 #include "board.h"
+
+using namespace std;
 
 namespace eia_v0_5
 {
     Move SolverPVS::get_move(MS time)
     {
-        Move best;
+        Move best = Empty;
         nodes = 0;
         thinking = true;
 
@@ -25,7 +30,62 @@ namespace eia_v0_5
 
     U64 SolverPVS::perft(int depth)
     {
-        return U64();
+        U64 count = EMPTY;
+
+        cout << "-- Perft " << depth << endl;
+        B->print();
+
+        Timer timer;
+        timer.set();
+
+        B->init_node();
+        B->generate<true>();
+        B->generate<false>();
+
+        while (Move move = B->get_next_move())
+        {
+            if (!B->make(move)) continue;
+            cout << B->prettify(move) << " - ";
+
+            U64 cnt = perft_inner(depth - 1);
+            count += cnt;
+
+            cout << cnt << endl;
+            B->unmake(move);
+        }
+
+        long long time = timer.getms();
+        double knps = static_cast<double>(count) / (time + 1);
+
+        cout << endl;
+        cout << "Count: " << count << endl;
+        cout << "Time: " << time << " ms" << endl;
+        cout << "Speed: " << knps << " knps" << endl;
+        cout << endl << endl;
+
+        B->print();
+
+        return count;
+    }
+
+    U64 SolverPVS::perft_inner(int depth)
+    {
+        if (depth <= 0) return 1;
+
+        B->init_node();
+        B->generate<true>();
+        B->generate<false>();
+
+        U64 count = EMPTY;
+        while (auto move = B->get_next_move())
+        {
+            if (!B->make(move)) continue;
+
+            if (depth > 1) count += perft_inner(depth - 1);
+            else count++;
+            B->unmake(move);
+        }
+        return count;
     }
 
     bool SolverPVS::time_lack() const

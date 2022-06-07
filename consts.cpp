@@ -8,5 +8,5 @@ namespace eia_v0_5
 
     const char * ENG_NAME = "Eia";
     const char * ENG_VERS = "0.5";
-    const char * ENG_AUTH = "Nikita Kurgin";
+    const char * ENG_AUTH = "Nick Kurgin";
 }

@@ -53,6 +53,8 @@ namespace eia_v0_5
             P->read();
             if (!execute()) break;
         }
+
+        delete P;
     }
 
     bool Engine::execute()

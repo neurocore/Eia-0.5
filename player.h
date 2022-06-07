@@ -25,4 +25,3 @@ namespace eia_v0_5
         virtual U64 perft(int depth) { return 0; }
         virtual ~Reader() {}
     };
-}

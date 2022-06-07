@@ -4,6 +4,7 @@ namespace eia_v0_5
 {
     int EvalSimple::eval(const BoardInner & inner) const
     {
-        return inner.wtm ? 100 : -100;
+        return 0;
+        //return inner.wtm ? 100 : -100;
     }
 }

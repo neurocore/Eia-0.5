@@ -13,7 +13,7 @@ namespace eia_v0_5
         string input;
         while(true)
         {
-            cin >> input;
+            getline(cin, input);
             if (input == "uci") return new UCI();
             if (input == "quit") return nullptr;
             if (input == "exit") return nullptr;

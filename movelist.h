@@ -1,4 +1,5 @@
 #pragma once
+#include <iterator>
 #include <limits>
 #include "moves.h"
 
@@ -10,51 +11,43 @@ namespace eia_v0_5
         GEN_QUIET, QUIET, BAD_CAPS
     };
 
-    class MoveVal
+    struct MoveVal // POD
     {
-        Move move_;
-        int val_;
-
-    public:
-        MoveVal(Move move = Move(), int val = 0)
-            : move_(move), val_(val)
-        {}
-
-        Move move() const { return move_; }
-        int val() const { return val_; }
-        friend bool operator == (const MoveVal & a, const MoveVal & b);
-        friend bool operator <  (const MoveVal & a, const MoveVal & b);
+        Move move;
+        int val;
     };
 
     class MoveList
     {
         Move hashmove;
         MoveVal moves[256];
-        MoveVal * first = moves;
-        MoveVal * last = moves;
         GenStage stage = GenStage::HASH;
+        MoveVal * first, * last;
 
     public:
         MoveList(Move hashmove = Move())
             : hashmove(hashmove)
-        {}
+        {
+            clear();
+        }
 
-        void clear(Move hash_move = Move());
+        void clear()       { last = first = moves; }
+        bool empty() const { return last == first; }
+        U64  count() const { return last -  first; }
+
+        Move get_next_move();
         Move get_best_move(int lower_bound = -INT_MAX);
 
-        void add(Move move);
+        void add(Move move, int val = 0);
+        void add_move(SQ from, SQ to, Flags flags = F_QUIET);
+        void add_prom(SQ from, SQ to);
+        void add_capprom(SQ from, SQ to);
         void print() const;
-        Move get_next_move() const;
 
         void set_values();
-        void generate_all();
-        void generate_attacks();
-        void generate_quiets();
-        void generate_evasions();
-        void sort();
 
     private:
-        void remove(MoveVal * mv);
+        void remove(MoveVal * ptr);
         void remove_hashmove();
         void remove_hashmove_and_killers();
     };

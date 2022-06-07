@@ -13,12 +13,12 @@ namespace eia_v0_5
     class EvalEmpty : public Eval
     {
     public:
-        int eval(const BoardInner & inner) const { return 0; }
+        int eval(const BoardInner & inner) const override { return 0; }
     };
 
     class EvalSimple : public Eval
     {
     public:
-        int eval(const BoardInner & inner) const;
+        int eval(const BoardInner & inner) const override;
     };
 }

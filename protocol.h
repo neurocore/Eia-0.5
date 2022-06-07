@@ -17,8 +17,8 @@ namespace eia_v0_5
 
     struct UCI : public Protocol
     {
-        virtual void greet();
-        virtual void read();
+        virtual void greet() override;
+        virtual void read() override;
     };
 
 }

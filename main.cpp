@@ -27,6 +27,12 @@ int main()
     Engine * engine = new Engine(GameType::Playing);
     engine->start();
 
-    system("pause");
+    delete engine;
+    delete M;
+    delete ARR;
+    delete BBT;
+    delete PT;
+
+    _CrtDumpMemoryLeaks();
     return 0;
 }

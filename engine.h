@@ -10,12 +10,13 @@ namespace eia_v0_5
 
     class Engine
     {
+        State states[2];
         Board * B;
         Player * S[2];
         Protocol * P;
 
     public:
-        Engine(GameType gt);
+        explicit Engine(GameType gt);
         ~Engine();
         void start();
         bool execute();

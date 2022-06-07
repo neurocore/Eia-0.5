@@ -21,11 +21,12 @@ namespace eia_v0_5
     {
         for (int y = 7; y >= 0; y--)
         {
+            os << "  ";
             for (int x = 0; x < 8; x++)
             {
                 SQ sq = sq_(x, y);
                 U64 bit = BIT << sq;
-                char ch = bb.val & bit ? '*' : '.';
+                char ch = (bb.val & bit) ? '*' : '.';
                 os << ch;
             }
             os << endl;
@@ -50,11 +51,11 @@ namespace eia_v0_5
         return __popcnt64(bb);
     }
 
-    inline int bitscan(U64 bb)
+    inline SQ bitscan(U64 bb)
     {
         unsigned long btscn_indx;
         _BitScanForward64(&btscn_indx, bb);
-        return btscn_indx;
+        return static_cast<SQ>(btscn_indx);
     }
 #else
     inline int popcnt(U64 bb)
@@ -66,9 +67,9 @@ namespace eia_v0_5
         return BBT->lut[a] + BBT->lut[b] + BBT->lut[c] + BBT->lut[d];
     }
 
-    inline int bitscan(U64 bb)
+    inline SQ bitscan(U64 bb)
     {
-        return BBT->btscn[(lsb(bb) * BBT->DEBRUIJN) >> 58];
+        return static_cast<SQ>(BBT->btscn[(lsb(bb) * BBT->DEBRUIJN) >> 58]);
     }
 #endif
 }

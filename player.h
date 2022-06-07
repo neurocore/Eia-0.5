@@ -9,6 +9,7 @@ namespace eia_v0_5
     {
     public:
         Player(Board * board) : B(board) {}
+        virtual ~Player() {}
         virtual Move get_move(MS time) = 0;
         virtual U64 perft(int depth) = 0;
 
@@ -22,5 +23,6 @@ namespace eia_v0_5
         Reader(Board * board) : Player(board) {}
         virtual Move get_move(MS time);
         virtual U64 perft(int depth) { return 0; }
+        virtual ~Reader() {}
     };
 }

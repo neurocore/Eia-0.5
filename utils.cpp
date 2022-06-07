@@ -1,9 +1,11 @@
+#include <cmath>
 #include "utils.h"
 
 namespace eia_v0_5
 {
+    // Overloaded function
     template <typename T>
-    int operator + (const T & val)
+    constexpr int operator + (const T & val)
     {
         return static_cast<int>(val);
     }
@@ -20,26 +22,31 @@ namespace eia_v0_5
         return os;
     }
 
-    SQ operator ++ (SQ & sq, int)
+    SQ operator ++ (SQ & sq)
     {
         sq = static_cast<SQ>(+sq + 1);
         return sq;
     }
 
-    SQ operator -- (SQ & sq, int)
+    SQ operator -- (SQ & sq)
     {
         sq = static_cast<SQ>(+sq - 1);
         return sq;
     }
 
-    SQ operator + (SQ sq, int val)
+    constexpr SQ operator + (SQ sq, int val)
     {
         return static_cast<SQ>(+sq + val);
     }
 
-    SQ operator - (SQ sq, int val)
+    constexpr SQ operator - (SQ sq, int val)
     {
         return static_cast<SQ>(+sq - val);
+    }
+
+    int dist(SQ a, SQ b)
+    {
+        return abs(+a - +b);
     }
 
     SQ & operator += (SQ & sq, int val)
@@ -54,14 +61,25 @@ namespace eia_v0_5
         return sq;
     }
 
-    Castling operator | (const Castling & a, const Castling & b)
+    constexpr Castling operator | (const Castling & a, const Castling & b)
     {
         return static_cast<Castling>(+a | +b);
     }
 
-    Castling & operator |= (Castling & lhs, const Castling & rhs)
+    constexpr Castling & operator |= (Castling & lhs, const Castling & rhs)
     {
         lhs = lhs | rhs;
+        return lhs;
+    }
+
+    constexpr Castling operator & (const Castling & a, const Castling & b)
+    {
+        return static_cast<Castling>(+a & +b);
+    }
+
+    constexpr Castling & operator &= (Castling & lhs, const Castling & rhs)
+    {
+        lhs = lhs & rhs;
         return lhs;
     }
 

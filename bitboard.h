@@ -29,7 +29,7 @@ namespace eia_v0_5
 
     private:
         friend int popcnt(U64 bb);
-        friend int bitscan(U64 bb);
+        friend SQ bitscan(U64 bb);
     };
 
     struct BitBoard { U64 val; }; // newtype idiom
@@ -39,5 +39,5 @@ namespace eia_v0_5
     extern U64 lsb(U64 bb);
     extern U64 rlsb(U64 bb);
     extern int popcnt(U64 bb);
-    extern int bitscan(U64 bb);
+    extern SQ bitscan(U64 bb);
 }

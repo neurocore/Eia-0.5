@@ -42,9 +42,8 @@ namespace eia_v0_5
     {
         if (stream.empty()) throw exception("Expected move value in bytecode");
         int val = stream.front();
-        Move move = Move::unpack(val);
         stream.pop();
-        return move;
+        return static_cast<Move>(val);
     }
 
     void CommandStream::write_cmd(Cmd cmd)
@@ -66,7 +65,6 @@ namespace eia_v0_5
 
     void CommandStream::write_move(Move move)
     {
-        int val = move.pack();
-        stream.push(val);
+        stream.push(move);
     }
 }

@@ -1,5 +1,6 @@
 #include <cmath>
 #include "utils.h"
+#include "array.h"
 
 namespace eia_v0_5
 {
@@ -81,6 +82,11 @@ namespace eia_v0_5
     {
         lhs = lhs & rhs;
         return lhs;
+    }
+
+    constexpr Castling operator - (const Castling & a, const SQ & square)
+    {
+        return static_cast<Castling>(+a & ARR->uncastle[square]);
     }
 
     template<> constexpr U64 shift<Dir::U>(U64 b)  { return b << 8; }

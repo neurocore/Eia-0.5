@@ -38,6 +38,8 @@ namespace eia_v0_5
     extern constexpr Castling   operator &  (const Castling & a, const Castling & b);
     extern constexpr Castling & operator &= (Castling & lhs, const Castling & rhs);
 
+    extern constexpr Castling   operator -  (const Castling & a, const SQ & square);
+
     template<Dir dir> U64 shift(U64 b);
     extern constexpr inline U64 shift(U64 b, Dir dir);
 

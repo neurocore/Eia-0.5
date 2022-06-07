@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cstdlib>
 #include "bitboard.h"
+#include "array.h"
 #include "piece.h"
 #include "magics.h"
 #include "engine.h"
@@ -11,11 +12,13 @@ using namespace std;
 PieceTables * eia_v0_5::PT;
 BBTables * eia_v0_5::BBT;
 Magics * eia_v0_5::M;
+Array * eia_v0_5::ARR;
 
 int main()
 {
     PT = new PieceTables;
     BBT = new BBTables;
+    ARR = new Array;
     M = new Magics;
     cout << ENG_NAME << " v" << ENG_VERS << " by " << ENG_AUTH << " (c) 2021\n";
 

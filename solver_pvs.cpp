@@ -40,6 +40,11 @@ namespace eia_v0_5
         return false;
     }
 
+    int SolverPVS::ply() const
+    {
+        return B->ply(states);
+    }
+
     int SolverPVS::pvs(int alpha, int beta, int depth)
     {
         /*

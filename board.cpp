@@ -1,6 +1,9 @@
+#include <cassert>
 #include <iostream>
 #include <sstream>
+#include "piece.h"
 #include "board.h"
+#include "array.h"
 
 using namespace std;
 
@@ -9,8 +12,8 @@ namespace eia_v0_5
     void Board::print() const
     {
         const string pieces = "pPnNbBrRqQkK..";
-        const string side = inner.wtm ? "<W>" : "<B>";
-        U64 occupied = inner.occ[0] | inner.occ[1];
+        const string side = wtm ? "<W>" : "<B>";
+        U64 occupied = occ[0] | occ[1];
 
         for (int y = 7; y >= 0; y--)
         {
@@ -20,7 +23,7 @@ namespace eia_v0_5
             {
                 SQ s = sq_(x, y);
                 U64 bit = BIT << s;
-                cout << (bit & occupied ? pieces[inner.sq[s]] : '.');
+                cout << ((bit & occupied) ? pieces[sq[s]] : '.');
             }
 
             if (y == 0) cout << " " << side;
@@ -31,15 +34,20 @@ namespace eia_v0_5
 
     void Board::clear()
     {
-        inner.wtm = 1;
-        for (int i = 0; i < PIECE_N;  i++) inner.piece[i] = EMPTY;
-        for (int i = 0; i < COLOR_N;  i++) inner.occ[i] = EMPTY;
-        for (int i = 0; i < SQUARE_N; i++) inner.sq[i] = NOP;
+        wtm = 1;
+        for (int i = 0; i < PIECE_N;  i++) piece[i] = EMPTY;
+        for (int i = 0; i < COLOR_N;  i++) occ[i] = EMPTY;
+        for (int i = 0; i < SQUARE_N; i++) sq[i] = NOP;
     }
 
     void Board::reset()
     {
         from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+    }
+
+    int Board::ply(const State * states) const
+    {
+        return static_cast<int>(state - states);
     }
 
     string Board::make_fen()
@@ -50,26 +58,215 @@ namespace eia_v0_5
     string Board::prettify(const Move & move)
     {
         stringstream ss;
-        int piece = inner.sq[move.from()];
+        int piece = sq[get_from(move)];
         ss << "pPnNbBrRqQkK?"[piece];
-        ss << move.from();
-        ss << move.to();
+        ss << get_from(move);
+        ss << get_to(move);
         return ss.str();
     }
 
     int Board::eval(const Eval * E) const
     {
-        return E->eval(inner);
+        return 0; // E->eval(inner);
     }
 
-    bool Board::make(const Move & move)
+    bool Board::is_attacked(SQ king, U64 occupied, int opposite)
     {
+        int col = wtm ^ opposite;
+        if (moves(WN ^ col, king) & piece[BN ^ col]) return true; // Knights
+        if (moves(WP ^ col, king) & piece[BP ^ col]) return true; // Pawns
+        if (moves(WK ^ col, king) & piece[BK ^ col]) return true; // King
+
+        if (b_att(occupied, king) & (piece[BB ^ col] | piece[BQ ^ col])) return true; // Bishops & queens
+        if (r_att(occupied, king) & (piece[BR ^ col] | piece[BQ ^ col])) return true; // Rooks & queens
 
         return false;
     }
 
+    bool Board::make(const Move & move)
+    {
+        const SQ from = get_from(move);
+        const SQ to = get_to(move);
+
+        state++;
+        state->castling = (state - 1)->castling - from - to;
+        state->hash = (state - 1)->hash; // ^ hash_ep[en_passant] ^ hash_castle[castling];
+        state->cap = static_cast<Piece>(sq[to]);
+        state->en_passant = A1;
+        state->fifty = 0;
+
+        state->best = Empty;
+        state->ml.clear();
+
+        const Piece p = static_cast<Piece>(sq[from]);
+        const Flags flags = get_flags(move);
+
+        switch (flags)
+        {
+            case F_CAP:
+            {
+                remove(from);
+                remove(to);
+                place(to, p);
+                break;
+            }
+
+            case F_KCASTLE:
+            {
+                remove(from);
+                remove(to + 1);
+                place(to, p);
+                place(to - 1, BR + wtm);
+                break;
+            }
+
+            case F_QCASTLE:
+            {
+                remove(from);
+                remove(to - 2);
+                place(to, p);
+                place(to + 1, BR + wtm);
+                break;
+            }
+
+            case F_NPROM: case F_BPROM: case F_RPROM: case F_QPROM:
+            {
+                const int prom = 2 * (flags - F_NPROM) + BN + wtm;
+
+                remove(from);
+                place(to, prom);
+                break;
+            }
+
+            case F_NCAPPROM: case F_BCAPPROM: case F_RCAPPROM: case F_QCAPPROM:
+            {
+                const int prom = 2 * (flags - F_NCAPPROM) + BN + wtm;
+
+                remove(from);
+                remove(to);
+                place(to, prom);
+                break;
+            }
+
+            case F_EP:
+            {
+                const SQ cap = sq_(x_(to), y_(from));
+
+                remove(cap);
+                remove(from);
+                place(to, p);
+                break;
+            }
+
+            case F_PAWN2: // ---------- FALL THROUGH! ------------
+            {
+                state->en_passant = static_cast<SQ>((from + to) / 2);
+            }
+
+            default:
+            {
+                remove(from);
+                place(to, p);
+
+                if (!is_pawn(p)) state->fifty = (state - 1)->fifty + 1;
+            }
+        }
+
+        //state->hash ^= hash_ep[state->ep] ^ hash_castle[state->castling] ^ hash_wtm;
+        wtm ^= 1;
+
+        const U64 o = occ[0] | occ[1];
+        if (is_attacked(bitscan(piece[BK + wtm ^ 1]), o))
+        {
+            unmake(move);
+            return false;
+        }
+
+        switch (flags)
+        {
+            case F_KCASTLE: case F_QCASTLE:
+            {
+                if (is_attacked(to, o) || is_attacked(static_cast<SQ>((from + to) / 2), o))
+                {
+                    unmake(move);
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
     void Board::unmake(const Move & move)
     {
+        const Flags flags = get_flags(move);
+        const SQ from = get_from(move);
+        const SQ to = get_to(move);
+        const Piece p = static_cast<Piece>(sq[to]);
+
+        wtm ^= 1;
+
+        switch (flags)
+        {
+            case F_CAP: 
+            {
+                assert(state->cap != NOP);
+                remove<false>(to);
+                place<false>(from, p);
+                place<false>(to, state->cap);
+                break;
+            }
+
+            case F_KCASTLE:
+            {
+                remove<false>(to - 1);
+                remove<false>(to);
+                place<false>(to + 1, BR + wtm);
+                place<false>(from, p);
+                break;
+            }
+
+            case F_QCASTLE:
+            {
+                remove<false>(to + 1);
+                remove<false>(to);
+                place<false>(to - 2, BR + wtm);
+                place<false>(from, p);
+                break;
+            }
+
+            case F_NPROM: case F_BPROM: case F_RPROM: case F_QPROM:
+            {
+                remove<false>(to);
+                place<false>(from, BP + wtm);
+                break;
+            }
+
+            case F_NCAPPROM: case F_BCAPPROM: case F_RCAPPROM: case F_QCAPPROM:
+            {
+                remove<false>(to);
+                place<false>(from, BP + wtm);
+                place<false>(to, state->cap);
+                break;
+            }
+
+            case F_EP:
+            {
+                const SQ cap = sq_(x_(to), y_(from));
+
+                remove<false>(to);
+                place<false>(cap, p ^ 1);
+                place<false>(from, p);
+                break;
+            }
+
+            default:
+            {
+                remove<false>(to);
+                place<false>(from, p);
+            }
+	    }
+
+        state--;
     }
 
     bool Board::from_fen(string fen)
@@ -87,56 +284,76 @@ namespace eia_v0_5
 
         int val;
         bool success = !!(ss >> val);
-        inner.fifty = success ? val : 0;
+        state->fifty = success ? val : 0;
         return true;
     }
 
+    void Board::set(const Board * board)
+    {
+        for (int i = 0; i < PIECE_N; i++)
+            piece[i] = board->piece[i];
+
+        for (int i = 0; i < SQUARE_N; i++)
+            sq[i] = board->sq[i];
+
+        occ[0] = board->occ[0];
+        occ[1] = board->occ[1];
+
+        wtm = board->wtm;
+
+        state->en_passant = board->state->en_passant;
+        state->castling = board->state->castling;
+        state->fifty = board->state->fifty;
+        state->hash = board->state->hash;
+        state->cap = board->state->cap;
+    }    
+
     void Board::parse_fen_board(string str)
     {
-        SQ sq = A8;
+        SQ s = A8;
         for (char ch : str)
         {
-            Piece piece = NOP;
+            Piece p = NOP;
             switch(ch)
             {
-                case 'p': piece = BP; break;
-                case 'P': piece = WP; break;
-                case 'n': piece = BN; break;
-                case 'N': piece = WN; break;
-                case 'b': piece = BB; break;
-                case 'B': piece = WB; break;
-                case 'r': piece = BR; break;
-                case 'R': piece = WR; break;
-                case 'q': piece = BQ; break;
-                case 'Q': piece = WQ; break;
-                case 'k': piece = BK; break;
-                case 'K': piece = WK; break;
+                case 'p': p = BP; break;
+                case 'P': p = WP; break;
+                case 'n': p = BN; break;
+                case 'N': p = WN; break;
+                case 'b': p = BB; break;
+                case 'B': p = WB; break;
+                case 'r': p = BR; break;
+                case 'R': p = WR; break;
+                case 'q': p = BQ; break;
+                case 'Q': p = WQ; break;
+                case 'k': p = BK; break;
+                case 'K': p = WK; break;
                 case '/': continue;
 
                 default:
                     if (ch > '0' && ch < '9')
-                        sq += ch - '0';
+                        s += ch - '0';
             }
 
-            if (piece < NOP)
+            if (p < NOP)
             {
-                inner.piece[piece] |= BIT << sq;
-                inner.sq[sq] = piece;
-                sq++;
+                piece[p] |= BIT << s;
+                sq[s] = p;
+                ++s;
             }
 
-            if (!(sq & 7)) // End of row
+            if (!(s & 7)) // End of row
             {
-                if (sq < 16) break;
-                sq -= 16;
+                if (s < 16) break;
+                s -= 16;
             }
         }
 
-        inner.occ[0] = inner.occ[1] = EMPTY;
+        occ[0] = occ[1] = EMPTY;
         for (int i = BP; i < PIECE_N; i += 2)
         {
-            inner.occ[0] |= inner.piece[i];
-            inner.occ[1] |= inner.piece[i + 1];
+            occ[0] |= piece[i];
+            occ[1] |= piece[i + 1];
         }
     }
 
@@ -145,22 +362,22 @@ namespace eia_v0_5
         if (str.empty()) return;
         switch (str[0])
         {
-            case 'w': case 'W': inner.wtm = 1; break;
-            case 'b': case 'B': inner.wtm = 0; break;
+            case 'w': case 'W': wtm = 1; break;
+            case 'b': case 'B': wtm = 0; break;
         } 
     }
 
     void Board::parse_fen_castling(string str)
     {
-        inner.castling = static_cast<Castling>(0);
+        state->castling = static_cast<Castling>(0);
         for (char ch : str)
         {
             switch (ch)
             {
-                case 'k': inner.castling |= BOO;  break;
-                case 'q': inner.castling |= BOOO; break;
-                case 'K': inner.castling |= WOO;  break;
-                case 'Q': inner.castling |= WOOO; break;
+                case 'k': state->castling |= BOO;  break;
+                case 'q': state->castling |= BOOO; break;
+                case 'K': state->castling |= WOO;  break;
+                case 'Q': state->castling |= WOOO; break;
             }
         }
     }
@@ -175,6 +392,19 @@ namespace eia_v0_5
             else if (ch >= 'A' && ch <= 'H') x = ch - 'A';
             else if (ch == '3' || ch == '6') y = ch - '1';
         }
-        inner.en_passant = sq_(x, y);
+        state->en_passant = sq_(x, y);
+    }
+
+    U64 Board::attack(Piece p, SQ sq)
+    {
+        switch (p)
+        {
+            case BN: case WN: return attack<PieceType::KNIGHT>(sq);
+            case BB: case WB: return attack<PieceType::BISHOP>(sq);
+            case BR: case WR: return attack<PieceType::ROOK>(sq);
+            case BQ: case WQ: return attack<PieceType::QUEEN>(sq);
+            case BK: case WK: return attack<PieceType::KING>(sq);
+        }
+        return EMPTY;
     }
 }

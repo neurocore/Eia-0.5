@@ -9,7 +9,7 @@ namespace eia_v0_5
 {
     Engine::Engine(GameType gt)
     {
-        B = new Board;
+        B = new Board(states);
 
         switch (gt)
         {
@@ -39,6 +39,7 @@ namespace eia_v0_5
     {
         B->reset();
         B->print();
+
         P = Protocol::detect();
         if (P == nullptr)
         {

@@ -14,13 +14,13 @@ namespace eia_v0_5
         switch (gt)
         {
             case Playing:
-                S[0] = new SolverPVS(B);
-                S[1] = new Reader(B);
+                S[0] = new SolverPVS();
+                S[1] = new Reader();
                 break;
 
             case Learning:
-                S[0] = new SolverPVS(B);
-                S[1] = new SolverPVS(B);
+                S[0] = new SolverPVS();
+                S[1] = new SolverPVS();
                 break;
 
             default:

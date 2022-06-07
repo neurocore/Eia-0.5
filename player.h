@@ -8,20 +8,20 @@ namespace eia_v0_5
     class Player
     {
     public:
-        Player(Board * board) : B(board) {}
+        Player() {}
         virtual ~Player() {}
+        virtual void set(const Board * board) = 0;
         virtual Move get_move(MS time) = 0;
         virtual U64 perft(int depth) = 0;
-
-    protected:
-        Board * const B;
     };
 
     class Reader : public Player
     {
     public:
-        Reader(Board * board) : Player(board) {}
-        virtual Move get_move(MS time);
-        virtual U64 perft(int depth) { return 0; }
+        Reader() : Player() {}
         virtual ~Reader() {}
+        virtual void set(const Board * board) override {}
+        virtual Move get_move(MS time) override;
+        virtual U64 perft(int depth) override { return 0; }
     };
+}

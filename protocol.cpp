@@ -60,6 +60,16 @@ namespace eia_v0_5
             commands.write_cmd(Cmd::Perft);
             commands.write_int(depth);
         }
+        else if (word == "fen")
+        {
+            string fen;
+            getline(ss, fen);
+            if (!fen.empty())
+            {
+                commands.write_cmd(Cmd::SetPosition);
+                commands.write_string(fen);
+            }
+        }
         else
         {
 

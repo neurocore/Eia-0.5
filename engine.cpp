@@ -78,6 +78,9 @@ namespace eia_v0_5
             }
             case SetPosition:
             {
+                string fen = P->commands.read_string();
+                B->from_fen(fen);
+                B->print();
                 break;
             }
             case SetMove:
@@ -98,6 +101,8 @@ namespace eia_v0_5
             {
                 int depth = P->commands.read_int();
                 cout << "perft " << depth << " ply" << endl;
+                S[0]->set(B);
+                S[0]->perft(depth);
                 break;
             }
         }

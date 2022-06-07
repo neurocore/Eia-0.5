@@ -13,13 +13,10 @@ using std::ostream;
 
 namespace eia_v0_5
 {
-    extern inline bool is_pawn(Piece p) { return p < BN; }
-
     extern inline int x_(SQ sq) { return sq & 7; }
     extern inline int y_(SQ sq) { return sq >> 3; }
     extern inline SQ sq_(int x, int y) { return SQ((y << 3) + x); }
 
-    ostream & operator << (ostream & os, const Piece & p);
     ostream & operator << (ostream & os, const SQ & sq);
 
     SQ operator ++ (SQ & sq);

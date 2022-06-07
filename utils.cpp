@@ -11,12 +11,6 @@ namespace eia_v0_5
         return static_cast<int>(val);
     }
 
-    ostream & operator << (ostream & os, const Piece & p)
-    {
-        os << "pPnNbBrRqQkK"[p];
-        return os;
-    }
-
     ostream & operator << (ostream & os, const SQ & sq)
     {
         os << FILOW[x_(sq)] << RANKS[y_(sq)];

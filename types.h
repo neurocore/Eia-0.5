@@ -12,9 +12,7 @@ namespace eia_v0_5
     using S32 = int;
     using S64 = long long;
 
-    enum Color          { BLACK, WHITE, COLOR_N };
-    enum Piece : U8     { BP, WP, BN, WN, BB, WB, BR, WR, BQ, WQ, BK, WK, PIECE_N, NOP = 13 };
-    enum PieceType : U8 { PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING, PIECE_TYPE_N };
+    enum Color { BLACK, WHITE, COLOR_N };
 
     enum SQ : U8
     {

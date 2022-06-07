@@ -43,7 +43,7 @@ namespace eia_v0_5
         init_piece(WQ, rook_offset, true);
         init_piece(BQ, rook_offset, true);
 
-        for (SQ sq = A1; sq < SQUARE_N; sq++)
+        for (SQ sq = A1; sq < SQUARE_N; ++sq)
         {
             forward_one[0][sq] = EMPTY;
             forward_one[1][sq] = EMPTY;
@@ -51,9 +51,9 @@ namespace eia_v0_5
             if (y_(sq) > 0) forward_one[1][sq] = (BIT << sq) << 8;
         }
 
-        for (SQ i = A1; i < SQUARE_N; i++)
+        for (SQ i = A1; i < SQUARE_N; ++i)
         {
-            for (SQ j = i + 1; j < SQUARE_N; j++) // j > i
+            for (SQ j = i + 1; j < SQUARE_N; ++j) // j > i
             {
                 dir[i][j] = 0;
                 between[i][j] = EMPTY;
@@ -80,7 +80,7 @@ namespace eia_v0_5
 
     void PieceTables::init_piece(Piece piece, Rays rays, bool slider)
     {
-        for (SQ sq = A1; sq < SQUARE_N; sq++)
+        for (SQ sq = A1; sq < SQUARE_N; ++sq)
         {
             for (auto ray : rays)
             {
@@ -99,5 +99,11 @@ namespace eia_v0_5
                 while (slider);
             }
         }
+    }
+
+    ostream & operator << (ostream & os, const Piece & p)
+    {
+        os << "pPnNbBrRqQkK"[p];
+        return os;
     }
 }

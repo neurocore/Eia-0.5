@@ -30,6 +30,9 @@ namespace eia_v0_5
     SQ & operator += (SQ & sq, int val);
     SQ & operator -= (SQ & sq, int val);
 
+    extern inline int recognize_x(char ch) { return (ch >= 'a' && ch <= 'h') ? ch - 'a' : -1; }
+    extern inline int recognize_y(char ch) { return (ch >= '1' && ch <= '8') ? ch - '1' : -1; }
+
     extern constexpr Castling   operator |  (const Castling & a, const Castling & b);
     extern constexpr Castling & operator |= (Castling & lhs, const Castling & rhs);
     extern constexpr Castling   operator &  (const Castling & a, const Castling & b);

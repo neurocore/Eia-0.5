@@ -31,7 +31,7 @@ namespace eia_v0_5
         cout << "uciok" << endl;
     }
 
-    void UCI::read()
+    bool UCI::parse(Engine * E)
     {
         string input, word;
         getline(cin, input);
@@ -39,26 +39,44 @@ namespace eia_v0_5
         stringstream ss(input);
         ss >> word;
 
-        if (word == "quit")
+        if (word == "go")
         {
-            commands.write_cmd(Cmd::Quit);
-        }
-        else if (word == "go")
-        {
-            int time;
-            if (ss >> time)
-            {
-                commands.write_cmd(Cmd::Go);
-                commands.write_int(time);
-            }
-        }
-        else if (word == "perft")
-        {
-            int depth;
-            if (!(ss >> depth)) depth = 1;
+            int time = TIME_DEFAULT;
+            ss >> time;
 
-            commands.write_cmd(Cmd::Perft);
-            commands.write_int(depth);
+            E->cmd_go(time);
+        }
+        else if (word == "position")
+        {
+            // [fen #fenstring | startpos ] moves #move1 .... #movei
+            string arg;
+            ss >> arg;
+
+            if (arg == "startpos")
+            {
+                E->cmd_setpos(STARTPOS);
+            }
+            else if (arg == "fen")
+            {
+                string fen;
+                getline(ss, fen, 'm');
+                ss << 'm';
+
+                if (!fen.empty())
+                {
+                    E->cmd_setpos(fen);
+                }
+            }
+
+            ss >> arg;
+            if (arg == "moves")
+            {
+                string move;
+                while (ss >> move)
+                {
+                    E->cmd_setmove(move);
+                }
+            }
         }
         else if (word == "fen")
         {
@@ -66,13 +84,57 @@ namespace eia_v0_5
             getline(ss, fen);
             if (!fen.empty())
             {
-                commands.write_cmd(Cmd::SetPosition);
-                commands.write_string(fen);
+                E->cmd_setpos(fen);
             }
+        }
+        else if (word == "isready")
+        {
+            cout << "readyok" << endl;
+        }
+        else if (word == "stop")
+        {
+            E->cmd_stop();
+        }
+        else if (word == "ucinewgame")
+        {
+            E->cmd_newgame();
+        }
+        else if (word == "setoption")
+        {
+            string arg, name;
+            if (ss >> arg >> name && arg == "name")
+            {
+                int value;
+                if (ss >> arg >> value && arg == "value")
+                {
+                    E->cmd_setoption(name, value);
+                }
+            }
+        }
+        else if (word == "debug")
+        {
+            string arg;
+            if (ss >> arg)
+            {
+                E->cmd_setdebug(arg == "on" ? 1 : 0);
+            }
+        }
+        else if (word == "perft")
+        {
+            int depth = 1;
+            ss >> depth;
+
+            E->cmd_perft(depth);
+        }
+        else if (word == "quit")
+        {
+            E->cmd_quit();
+            return false;
         }
         else
         {
-
+            cout << "Can't recognize command \"" << word << "\"" << endl;
         }
+        return true;
     }
 }

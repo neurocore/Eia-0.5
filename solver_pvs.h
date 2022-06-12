@@ -5,7 +5,7 @@
 
 namespace eia_v0_5
 {
-    class SolverPVS : public Player
+    class SolverPVS : public Solver
     {
         Board * B;
         Eval * E;
@@ -13,12 +13,11 @@ namespace eia_v0_5
         Timer timer;
 
         U64 nodes;
-        mutable bool thinking;
         State states[MAX_PLY];
         int history[PIECE_N][SQUARE_N];
 
     public:
-        SolverPVS() : Player() { B = new Board(states); E = new EvalSimple; thinking = false; }
+        SolverPVS() : Solver() { B = new Board(states); E = new EvalSimple; }
         virtual ~SolverPVS() { delete E; delete B; }
         virtual void set(const Board * board) override { B->set(board); }
         virtual Move get_move(MS time) override;

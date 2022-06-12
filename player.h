@@ -15,6 +15,17 @@ namespace eia_v0_5
         virtual U64 perft(int depth) = 0;
     };
 
+    class Solver : public Player
+    {
+    protected:
+        mutable bool thinking = false;
+        mutable bool debugging = false;
+
+    public:
+        void stop() { thinking = false; }
+        void debug(bool val) { debugging = val; }
+    };
+
     class Reader : public Player
     {
     public:

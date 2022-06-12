@@ -30,6 +30,8 @@ namespace eia_v0_5
     // | 0..5 | 6..11 | 12..15 | = 16 bits
     // | FROM |  TO   | FLAGS  |
     enum Move : U16 { Empty };
+
+    extern Flags recognize_prom(char ch, bool capture = false);
     
     extern inline Move build_move(SQ from, SQ to, Flags flags = F_QUIET)
     {

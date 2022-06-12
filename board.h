@@ -35,7 +35,7 @@ namespace eia_v0_5
 
         bool is_attacked(SQ king, U64 occupied, int opposite = 0);
 
-        bool make(const Move & move);
+        bool make(const Move & move, bool self = false);
         void unmake(const Move & move);
 
         template<bool captures = false>
@@ -44,8 +44,13 @@ namespace eia_v0_5
         template<bool full = false>
         bool operator == (const Board * B) const;
 
+        Move recognize(string move) const;
+
         void init_node() { state->ml.clear(); }
         Move get_next_move() const { return state->ml.get_next_move(); }
+
+        Move & curr() const { return state->curr; }
+        Move & best() const { return state->best; }
 
     private:
         void parse_fen_board(string str);

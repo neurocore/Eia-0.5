@@ -63,8 +63,6 @@ namespace eia_v0_5
         cout << "Speed: " << knps << " knps" << endl;
         cout << endl << endl;
 
-        B->print();
-
         return count;
     }
 

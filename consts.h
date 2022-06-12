@@ -29,6 +29,7 @@ namespace eia_v0_5
 
     extern const char * FILES, * FILOW, * RANKS;
     extern const char * ENG_NAME, * ENG_VERS, * ENG_AUTH;
+    extern const char * STARTPOS;
 
     const U32 TIME_DEFAULT = 60000;
 

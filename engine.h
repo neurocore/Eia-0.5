@@ -1,13 +1,15 @@
 #pragma once
+#include <functional>
 #include "board.h"
 #include "player.h"
-#include "protocol.h"
-#include "command.h"
+
+using std::function;
 
 namespace eia_v0_5
 {
     enum GameType { Playing, Learning };
 
+    struct Protocol;
     class Engine
     {
         State states[2];
@@ -19,11 +21,23 @@ namespace eia_v0_5
         explicit Engine(GameType gt);
         ~Engine();
         void start();
-        bool execute();
+
+        void cmd_go(MS time);
+        void cmd_setpos(string fen);
+        void cmd_setmove(string move);
+        void cmd_stop();
+
+        void cmd_newgame();
+        void cmd_setoption(string name, int val);
+        void cmd_setdebug(bool val);
+        void cmd_perft(int depth);
+        void cmd_quit();
 
         enum State { Waiting, Thinking, Error };
 
     private:
+        void execute_for(function<void(Solver *)> f);
+
         State state = State::Waiting;
     };
 }

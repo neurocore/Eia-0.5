@@ -42,7 +42,7 @@ namespace eia_v0_5
 
     void Board::reset()
     {
-        from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+        from_fen(STARTPOS);
     }
 
     int Board::ply(const State * states) const
@@ -83,14 +83,15 @@ namespace eia_v0_5
         return false;
     }
 
-    bool Board::make(const Move & move)
+    bool Board::make(const Move & move, bool self)
     {
         const SQ from = get_from(move);
         const SQ to = get_to(move);
 
-        state++;
-        state->castling = (state - 1)->castling - from - to;
-        state->hash = (state - 1)->hash; // ^ hash_ep[en_passant] ^ hash_castle[castling];
+        State * old = state;
+        if (!self) state++;
+        state->castling = old->castling - from - to;
+        state->hash = old->hash; // ^ hash_ep[en_passant] ^ hash_castle[castling];
         state->cap = static_cast<Piece>(sq[to]);
         state->en_passant = A1;
         state->fifty = 0;
@@ -168,11 +169,12 @@ namespace eia_v0_5
                 remove(from);
                 place(to, p);
 
-                if (!is_pawn(p)) state->fifty = (state - 1)->fifty + 1;
+                if (!is_pawn(p)) state->fifty = old->fifty + 1;
             }
         }
 
         //state->hash ^= hash_ep[state->ep] ^ hash_castle[state->castling] ^ hash_wtm;
+
         wtm ^= 1;
 
         const U64 o = occ[0] | occ[1];
@@ -267,6 +269,65 @@ namespace eia_v0_5
 	    }
 
         state--;
+    }
+
+    Move Board::recognize(string move) const
+    {
+        if (move.size() < 4) return Empty;
+
+        int x1 = recognize_x(tolower(move[0]));
+        int y1 = recognize_y(move[1]);
+
+        int x2 = recognize_x(tolower(move[2]));
+        int y2 = recognize_y(move[3]);
+
+        if (x1 < 0 || y1 < 0 || x1 < 0 || y2 < 0) return Empty;
+
+        SQ from = sq_(x1, y1);
+        SQ to = sq_(x2, y2);
+
+        Piece pie = static_cast<Piece>(sq[from]);
+        Piece cap = static_cast<Piece>(sq[to]);
+        Flags flags = F_QUIET;
+
+        if (is_pawn(pie))
+        {
+            if (wtm)
+            {
+                if      (y1 == 1 && y2 == 3) flags = F_PAWN2;   // Pawn double
+                else if (to == state->en_passant) flags = F_EP; // En passant
+                else if (y1 == 6)                               // Promotion
+                {
+                    if (move.size() < 5) return Empty;
+                    flags = recognize_prom(move[4], cap != NOP);
+                    if (flags == F_QUIET) return Empty;
+                }
+            }
+            else
+            {
+                if      (y1 == 6 && y2 == 4) flags = F_PAWN2;   // Pawn double
+                else if (to == state->en_passant) flags = F_EP; // En passant
+                else if (y1 == 1)                               // Promotion
+                {
+                    if (move.size() < 5) return Empty;
+                    flags = recognize_prom(move[4], cap != NOP);
+                    if (flags == F_QUIET) return Empty;
+                }
+            }
+
+            if (flags == F_QUIET && cap != NOP) flags = F_CAP;
+        }
+        else if (is_king(pie))
+        {
+            if      (to - from == 2) flags = F_KCASTLE;
+            else if (from - to == 2) flags = F_QCASTLE;
+        }
+        else
+        {
+            if (cap != NOP) flags = F_CAP;
+        }
+
+        return build_move(from, to, flags);
     }
 
     bool Board::from_fen(string fen)

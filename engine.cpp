@@ -49,63 +49,67 @@ namespace eia_v0_5
         }
 
         P->greet();
-        while (true)
-        {
-            P->read();
-            if (!execute()) break;
-        }
-
+        while (P->parse(this));
         delete P;
     }
 
-    bool Engine::execute()
+    void Engine::cmd_go(MS time)
     {
-        Cmd cmd = P->commands.read_cmd();
-        switch (cmd)
+        cout << "go " << time << "ms" << endl;
+        S[0]->set(B);
+        S[0]->get_move(time);
+    }
+
+    void Engine::cmd_setpos(string fen)
+    {
+        B->from_fen(fen);
+    }
+
+    void Engine::cmd_setmove(string move)
+    {
+        Move mv = B->recognize(move);
+        B->make(mv, true);
+    }
+
+    void Engine::cmd_stop()
+    {
+        execute_for([](Solver * solver) { solver->stop(); });
+    }
+
+    void Engine::cmd_newgame()
+    {
+        cout << "newgame" << endl;
+    }
+
+    void Engine::cmd_setoption(string name, int val)
+    {
+        cout << "set [" << name << " = " << val << "]" << endl;
+    }
+
+    void Engine::cmd_setdebug(bool val)
+    {
+        execute_for([val](Solver * solver) { solver->debug(val); });
+    }
+
+    void Engine::cmd_perft(int depth)
+    {
+        S[0]->set(B);
+        S[0]->perft(depth);
+    }
+
+    void Engine::cmd_quit()
+    {
+        cout << "glad to see you again" << endl;
+    }
+
+    void Engine::execute_for(function<void(Solver *)> f)
+    {
+        for (int i = 0; i < 2; i++)
         {
-            case NewGame:
-            {
-                break;
-            }
-            case Stop:
-            {
-                break;
-            }
-            case Quit:
-            {
-                cout << "glad to see you again" << endl;
-                return false;
-            }
-            case SetPosition:
-            {
-                string fen = P->commands.read_string();
-                B->from_fen(fen);
-                B->print();
-                break;
-            }
-            case SetMove:
-            {
-                break;
-            }
-            case SetOption:
-            {
-                break;
-            }
-            case Go:
-            {
-                int time = P->commands.read_int();
-                cout << "go " << time << "ms" << endl;
-                break;
-            }
-            case Perft:
-            {
-                int depth = P->commands.read_int();
-                cout << "perft " << depth << " ply" << endl;
-                S[0]->set(B);
-                S[0]->perft(depth);
-                break;
-            }
+            Solver * solver = dynamic_cast<Solver *>(S[i]);
+            if (solver == nullptr) continue;
+
+            f(solver);
         }
-        return true;
     }
 }

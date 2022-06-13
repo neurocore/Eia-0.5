@@ -1,10 +1,10 @@
 #include <iostream>
-#include <cstdlib>
 #include "bitboard.h"
 #include "array.h"
 #include "piece.h"
 #include "magics.h"
 #include "engine.h"
+#include "tests.h"
 
 using namespace eia_v0_5;
 using namespace std;
@@ -16,24 +16,21 @@ Array * eia_v0_5::ARR;
 
 int main()
 {
-    PT = new PieceTables;
-    BBT = new BBTables;
-    ARR = new Array;
-    M = new Magics;
     cout << ENG_NAME << " v" << ENG_VERS << " by " << ENG_AUTH << " (c) 2021-2022\n";
+
+    Engine * engine = new Engine(GameType::Playing);
 
     U64 att = r_att((BIT << B4) | (BIT << E7), E4);
     cout << BitBoard{att};
     cout << BitBoard{between(B4, E7)};
 
-    Engine * engine = new Engine(GameType::Playing);
-    engine->start();
+#ifdef _DEBUG
+    Tests tests(engine);
+    if (!tests.run()) return 1;
+#endif
 
+    engine->start();
     delete engine;
-    delete M;
-    delete ARR;
-    delete BBT;
-    delete PT;
 
     _CrtDumpMemoryLeaks();
     return 0;

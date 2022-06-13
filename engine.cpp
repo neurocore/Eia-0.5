@@ -1,4 +1,5 @@
 #include <exception>
+#include "array.h"
 #include "engine.h"
 #include "protocol.h"
 #include "solver_pvs.h"
@@ -9,6 +10,10 @@ namespace eia_v0_5
 {
     Engine::Engine(GameType gt)
     {
+        PT = new PieceTables;
+        BBT = new BBTables;
+        ARR = new Array;
+        M = new Magics;
         B = new Board(states);
 
         switch (gt)
@@ -33,6 +38,10 @@ namespace eia_v0_5
         delete S[1];
         delete S[0];
         delete B;
+        delete M;
+        delete ARR;
+        delete BBT;
+        delete PT;
     }
 
     void Engine::start()

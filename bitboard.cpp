@@ -1,4 +1,3 @@
-#include <intrin.h>
 #include "utils.h"
 #include "consts.h"
 #include "bitboard.h"
@@ -44,11 +43,14 @@ namespace eia_v0_5
     {
         return bb & (bb - BIT);
     }
+                               
+#if (defined(_M_AMD64) || defined(_M_X64)) // [SSE2 x64]
 
-#ifdef SSE
+    #include <intrin.h>
+
     inline int popcnt(U64 bb)
     {
-        return __popcnt64(bb);
+        return static_cast<int>(__popcnt64(bb));
     }
 
     inline SQ bitscan(U64 bb)
@@ -57,7 +59,9 @@ namespace eia_v0_5
         _BitScanForward64(&btscn_indx, bb);
         return static_cast<SQ>(btscn_indx);
     }
+
 #else
+
     inline int popcnt(U64 bb)
     {
         int a =  bb >> 48;
@@ -71,5 +75,6 @@ namespace eia_v0_5
     {
         return static_cast<SQ>(BBT->btscn[(lsb(bb) * BBT->DEBRUIJN) >> 58]);
     }
+
 #endif
 }

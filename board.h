@@ -33,7 +33,8 @@ namespace eia_v0_5
         int ply(const State * states) const;
         int eval(const Eval * E) const;
 
-        bool is_attacked(SQ king, U64 occupied, int opposite = 0);
+        bool is_attacked(SQ king, U64 occupied, int opposite = 0) const;
+        bool in_check(int opposite = 0) const;
 
         bool make(const Move & move, bool self = false);
         void unmake(const Move & move);
@@ -48,6 +49,8 @@ namespace eia_v0_5
 
         void init_node() { state->ml.clear(); }
         Move get_next_move() const { return state->ml.get_next_move(); }
+        
+        int to_move() const { return wtm; }
 
         Move & curr() const { return state->curr; }
         Move & best() const { return state->best; }

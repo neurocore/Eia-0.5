@@ -70,17 +70,23 @@ namespace eia_v0_5
         return 0; // E->eval(inner);
     }
 
-    bool Board::is_attacked(SQ king, U64 occupied, int opposite)
+    bool Board::is_attacked(SQ king, U64 occupied, int opposite) const
     {
         int col = wtm ^ opposite;
-        if (moves(WN ^ col, king) & piece[BN ^ col]) return true; // Knights
-        if (moves(WP ^ col, king) & piece[BP ^ col]) return true; // Pawns
-        if (moves(WK ^ col, king) & piece[BK ^ col]) return true; // King
+        if (moves(BN ^ col, king) & piece[WN ^ col]) return true; // Knights
+        if (moves(BP ^ col, king) & piece[WP ^ col]) return true; // Pawns
+        if (moves(BK ^ col, king) & piece[WK ^ col]) return true; // King
 
-        if (b_att(occupied, king) & (piece[BB ^ col] | piece[BQ ^ col])) return true; // Bishops & queens
-        if (r_att(occupied, king) & (piece[BR ^ col] | piece[BQ ^ col])) return true; // Rooks & queens
+        if (b_att(occupied, king) & (piece[WB ^ col] | piece[WQ ^ col])) return true; // Bishops & queens
+        if (r_att(occupied, king) & (piece[WR ^ col] | piece[WQ ^ col])) return true; // Rooks & queens
 
         return false;
+    }
+
+    bool Board::in_check(int opposite) const
+    {
+        SQ king = bitscan(piece[BK ^ wtm ^ opposite]);
+        return is_attacked(king, occ[0] | occ[1], opposite);
     }
 
     bool Board::make(const Move & move, bool self)
@@ -174,11 +180,9 @@ namespace eia_v0_5
         }
 
         //state->hash ^= hash_ep[state->ep] ^ hash_castle[state->castling] ^ hash_wtm;
-
         wtm ^= 1;
 
-        const U64 o = occ[0] | occ[1];
-        if (is_attacked(bitscan(piece[BK + wtm ^ 1]), o))
+        if (in_check(1))
         {
             unmake(move);
             return false;
@@ -188,13 +192,17 @@ namespace eia_v0_5
         {
             case F_KCASTLE: case F_QCASTLE:
             {
-                if (is_attacked(to, o) || is_attacked(static_cast<SQ>((from + to) / 2), o))
+                const U64 o = occ[0] | occ[1];
+                const SQ ep = static_cast<SQ>((from + to) / 2);
+
+                if (is_attacked(to, o, 1) || is_attacked(ep, o, 1))
                 {
                     unmake(move);
                     return false;
                 }
             }
         }
+
         return true;
     }
 

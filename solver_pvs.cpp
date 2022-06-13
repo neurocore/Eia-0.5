@@ -10,19 +10,38 @@ namespace eia_v0_5
 {
     Move SolverPVS::get_move(MS time)
     {
-        Move best = Empty;
+        timer.set();
         nodes = 0;
+        to_think = time;
         thinking = true;
 
         for (int p = 0; p < PIECE_N; p++)
             for (int s = 0; s < 64; s++)
                 history[p][s] = 0;
 
+        Move best = Empty; 
         for (int depth = 1; depth <= MAX_PLY; depth++)
         {
             int val = pvs(-INF, INF, depth);
+
+            cout << "info depth " << depth
+                 << " score ";
+
+            if      (val >  MATE) cout << "mate " <<  (INF - val) / 2 + 1;
+            else if (val < -MATE) cout << "mate " << -(INF + val) / 2 - 1;
+            else                  cout << "cp " << val;
+
+            cout << " nodes " << nodes
+                 << " time " << timer.getms()
+                 << " pv " << B->best()
+                 << endl;
+
+            best = B->best();
+            if (val > MATE || val < -MATE) break;
 		    if (!thinking) break;
         }
+
+        cout << "bestmove " << best << endl;
 
         thinking = false;
         return best;
@@ -35,7 +54,6 @@ namespace eia_v0_5
         cout << "-- Perft " << depth << endl;
         B->print();
 
-        Timer timer;
         timer.set();
 
         B->init_node();
@@ -89,7 +107,7 @@ namespace eia_v0_5
     bool SolverPVS::time_lack() const
     {
         if (!thinking) return true;
-        const MS time_to_move = to_think / 100;
+        const MS time_to_move = to_think / 30;
         if (timer.getms() > time_to_move)
         {
             thinking = false;
@@ -105,21 +123,23 @@ namespace eia_v0_5
 
     int SolverPVS::pvs(int alpha, int beta, int depth)
     {
-        /*
         if (depth <= 0) return B->eval(E);
         if (time_lack()) return 0;
 
         const bool in_pv = (beta - alpha) > 1;
         bool search_pv = true;
-        state->best = Move();
+        B->best() = Move();
         int val = -INF;
         nodes++;
 
         int legal = 0;
-        state->ml.clear();
-        while (Move move = state->ml.get_next_move())
+
+        B->init_node();
+        B->generate<true>();
+        B->generate<false>();
+
+        while (Move move = B->get_next_move())
         {
-            state++;
             if (!B->make(move)) continue;
             legal++;
             int new_depth = depth - 1;
@@ -138,13 +158,12 @@ namespace eia_v0_5
                 val = -pvs(-beta, -alpha, new_depth + 1);
 
             B->unmake(move);
-            state--;
 
             if (val > alpha)
             {
                 alpha = val;
                 //hash_type = Hash_Exact;
-                state->best = move;
+                B->best() = move;
                 search_pv = false;
 
                 if (val >= beta)
@@ -161,7 +180,8 @@ namespace eia_v0_5
 
         if (!legal)
 	    {
-		    return in_check > 0 ? -INF + B->state - B->undo : 0; // contempt();
+            int in_check = B->in_check();
+		    return in_check > 0 ? -INF + ply() : 0; // contempt();
 	    }
 
     #ifdef SEARCH_HASHING
@@ -169,8 +189,5 @@ namespace eia_v0_5
     #endif
 
         return alpha;
-        */
-
-        return 0;
     }
 }

@@ -22,7 +22,7 @@ namespace eia_v0_5
         ~Engine();
         void start();
 
-        void cmd_go(MS time);
+        void cmd_go(MS wtime, MS btime, MS winc, MS binc, bool infinite = false);
         void cmd_setpos(string fen);
         void cmd_setmove(string move);
         void cmd_stop();

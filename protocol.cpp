@@ -36,15 +36,29 @@ namespace eia_v0_5
         string input, word;
         getline(cin, input);
 
-        stringstream ss(input);
+        stringstream ss(input + " 0");
         ss >> word;
 
         if (word == "go")
         {
-            int time = TIME_DEFAULT;
-            ss >> time;
+            bool infinite = false;
+            int wtime = TIME_DEFAULT;
+            int btime = TIME_DEFAULT;
+            int winc = INC_DEFAULT;
+            int binc = INC_DEFAULT;
 
-            E->cmd_go(time);
+            string arg;
+            int val;
+            while (ss >> arg >> val)
+            {
+                if      (arg == "wtime") wtime = val;
+                else if (arg == "btime") btime = val;
+                else if (arg == "winc") winc = val;
+                else if (arg == "binc") binc = val;
+                else if (arg == "infinite") infinite = true;
+            }
+
+            E->cmd_go(wtime, btime, winc, binc, infinite);
         }
         else if (word == "position")
         {
@@ -60,7 +74,6 @@ namespace eia_v0_5
             {
                 string fen;
                 getline(ss, fen, 'm');
-                ss << 'm';
 
                 if (!fen.empty())
                 {
@@ -69,7 +82,7 @@ namespace eia_v0_5
             }
 
             ss >> arg;
-            if (arg == "moves")
+            if (arg == "moves" || arg == "oves")
             {
                 string move;
                 while (ss >> move)

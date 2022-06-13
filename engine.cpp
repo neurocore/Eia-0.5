@@ -53,11 +53,18 @@ namespace eia_v0_5
         delete P;
     }
 
-    void Engine::cmd_go(MS time)
+    void Engine::cmd_go(MS wtime, MS btime, MS winc, MS binc, bool infinite)
     {
-        cout << "go " << time << "ms" << endl;
-        S[0]->set(B);
-        S[0]->get_move(time);
+        MS time = B->to_move() ? wtime + winc : btime + binc;
+        cout << "go " << static_cast<int>(time)
+             << "ms" << endl;
+
+        execute_for([&](Solver * solver)
+        {
+            solver->set(B);
+            solver->analysis(infinite);
+            solver->get_move(time);
+        });
     }
 
     void Engine::cmd_setpos(string fen)
@@ -69,6 +76,7 @@ namespace eia_v0_5
     {
         Move mv = B->recognize(move);
         B->make(mv, true);
+        B->print();
     }
 
     void Engine::cmd_stop()

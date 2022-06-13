@@ -106,6 +106,7 @@ namespace eia_v0_5
 
     bool SolverPVS::time_lack() const
     {
+        if (infinite) return false;
         if (!thinking) return true;
         const MS time_to_move = to_think / 30;
         if (timer.getms() > time_to_move)

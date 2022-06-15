@@ -84,6 +84,8 @@ namespace eia_v0_5
     void Engine::cmd_setmove(string move)
     {
         Move mv = B->recognize(move);
+        if (mv == Empty) return;
+
         B->make(mv, true);
         B->print();
     }

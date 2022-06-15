@@ -10,7 +10,7 @@ class Timer
 public:
     Timer() {}
     void set() { clock = Clock::now(); }
-    long long getms() const
+    unsigned long long getms() const
     {
         return std::chrono::duration_cast<MS>(Clock::now() - clock).count();
     }

@@ -22,8 +22,8 @@ namespace eia_v0_5
             for (int x = 0; x < 8; x++)
             {
                 SQ s = sq_(x, y);
-                U64 bit = BIT << s;
-                cout << ((bit & occupied) ? pieces[sq[s]] : '.');
+                U64 present = (BIT << s) & occupied;
+                cout << (present ? pieces[sq[s]] : '.');
             }
 
             if (y == 0) cout << " " << side;
@@ -289,7 +289,7 @@ namespace eia_v0_5
         int x2 = recognize_x(tolower(move[2]));
         int y2 = recognize_y(move[3]);
 
-        if (x1 < 0 || y1 < 0 || x1 < 0 || y2 < 0) return Empty;
+        if (x1 < 0 || y1 < 0 || x2 < 0 || y2 < 0) return Empty;
 
         SQ from = sq_(x1, y1);
         SQ to = sq_(x2, y2);
@@ -404,7 +404,7 @@ namespace eia_v0_5
                         s += ch - '0';
             }
 
-            if (p < NOP)
+            if (p < PIECE_N)
             {
                 piece[p] |= BIT << s;
                 sq[s] = p;

@@ -1,5 +1,6 @@
 #pragma once
-#include "eval.h"
+#include "types.h"
+#include "board.h"
 
 namespace eia_v0_5
 {

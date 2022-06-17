@@ -1,5 +1,4 @@
 #pragma once
-#include "board.h"
 
 namespace eia_v0_5
 {
@@ -7,18 +6,18 @@ namespace eia_v0_5
     class Eval
     {
     public:
-        virtual int eval(const BoardInner & inner) const = 0;
+        virtual int eval(const BoardInner * I) const = 0;
     };
 
     class EvalEmpty : public Eval
     {
     public:
-        int eval(const BoardInner & inner) const override { return 0; }
+        int eval(const BoardInner * I) const override { return -INF; }
     };
 
     class EvalSimple : public Eval
     {
     public:
-        int eval(const BoardInner & inner) const override;
+        int eval(const BoardInner * I) const override;
     };
 }

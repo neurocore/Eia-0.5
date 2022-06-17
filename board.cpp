@@ -4,6 +4,7 @@
 #include "piece.h"
 #include "board.h"
 #include "array.h"
+#include "eval.h"
 
 using namespace std;
 
@@ -67,7 +68,7 @@ namespace eia_v0_5
 
     int Board::eval(const Eval * E) const
     {
-        return 0; // E->eval(inner);
+        return E->eval(this);
     }
 
     bool Board::is_attacked(SQ king, U64 occupied, int opposite) const

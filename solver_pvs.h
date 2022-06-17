@@ -19,6 +19,8 @@ namespace eia_v0_5
     public:
         SolverPVS() : Solver() { B = new Board(states); E = new EvalSimple; }
         virtual ~SolverPVS() { delete E; delete B; }
+        SolverPVS();
+        virtual ~SolverPVS();
         virtual void set(const Board * board) override { B->set(board); }
         virtual Move get_move(MS time) override;
         virtual U64 perft(int depth) override;

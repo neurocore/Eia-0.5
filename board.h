@@ -4,14 +4,14 @@
 #include "movelist.h"
 #include "magics.h"
 #include "state.h"
-#include "eval.h"
 
 using std::string;
 
 namespace eia_v0_5
 {
     class Eval;
-    class Board
+
+    struct BoardInner
     {
         U64 piece[PIECE_N];
         U64 occ[COLOR_N];
@@ -20,8 +20,14 @@ namespace eia_v0_5
 
         State * state;
 
+        BoardInner(State * state) : state(state) {}
+    };
+
+    class Board : private BoardInner
+    {
     public:
         explicit Board(State * state) : state(state) { clear(); }
+        explicit Board(State * state) : BoardInner(state) { clear(); }
         void print() const;
 
         void clear();
@@ -84,8 +90,6 @@ namespace eia_v0_5
     {
         MoveList & ml = state->ml;
 
-        U64 me = occ[wtm];
-        U64 opp = occ[wtm ^ 1];
         U64 o = me | opp;
 
         gen<PieceType::KNIGHT, captures>();

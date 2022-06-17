@@ -3,11 +3,24 @@
 #include "solver_pvs.h"
 #include "movelist.h"
 #include "board.h"
+#include "eval.h"
 
 using namespace std;
 
 namespace eia_v0_5
 {
+    SolverPVS::SolverPVS() : Solver()
+    {
+        B = new Board(states);
+        E = new EvalSimple;
+    }
+
+    SolverPVS::~SolverPVS()
+    {
+        delete E;
+        delete B;
+    }
+
     Move SolverPVS::get_move(MS time)
     {
         timer.set();

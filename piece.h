@@ -35,6 +35,7 @@ namespace eia_v0_5
     extern inline Piece operator + (Piece p, int val) { return static_cast<Piece>(+p + val); }
     extern inline Piece operator - (Piece p, int val) { return static_cast<Piece>(+p - val); }
     extern inline Piece operator ^ (Piece p, int val) { return static_cast<Piece>(+p ^ val); }
+    extern inline Piece to_piece(PieceType pt, int wtm) { return static_cast<Piece>(wtm ^ ((+pt) << 1)); }
     extern inline bool is_pawn(Piece p) { return p < BN; }
     extern inline bool is_king(Piece p) { return p == BK || p == WK; }
     extern inline U64 moves(Piece piece, SQ sq) { return PT->att[piece][sq]; }

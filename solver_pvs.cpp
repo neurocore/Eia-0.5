@@ -2,9 +2,9 @@
 #include <iostream>
 #include "engine.h"
 #include "solver_pvs.h"
+#include "eval_basic.h"
 #include "movelist.h"
 #include "board.h"
-#include "eval.h"
 
 using namespace std;
 
@@ -13,7 +13,7 @@ namespace eia_v0_5
     SolverPVS::SolverPVS(Engine * engine) : Solver(engine)
     {
         B = new Board(states);
-        E = new EvalSimple;
+        E = new EvalBasic;
     }
 
     SolverPVS::~SolverPVS()

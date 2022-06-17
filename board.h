@@ -21,6 +21,10 @@ namespace eia_v0_5
         State * state;
 
         BoardInner(State * state) : state(state) {}
+
+        template<PieceType pt>
+        U64 attack(SQ sq) const;
+        U64 attack(Piece p, SQ sq) const;
     };
 
     class Board : private BoardInner
@@ -68,11 +72,6 @@ namespace eia_v0_5
 
         template<bool captures = false>
         U64 att_mask();
-
-        template<PieceType pt>
-        U64 attack(SQ sq);
-
-        U64 attack(Piece p, SQ sq);
 
         template<bool full = true>
         void place(SQ square, int p);
@@ -212,10 +211,10 @@ namespace eia_v0_5
     template<> inline U64 Board::att_mask<true>()  { return occ[wtm ^ 1]; }
     template<> inline U64 Board::att_mask<false>() { return ~(occ[0] | occ[1]); }
 
-    template<> inline U64 Board::attack<PieceType::BISHOP>(SQ sq) { return b_att(occ[0] | occ[1], sq); }
-    template<> inline U64 Board::attack<PieceType::ROOK>(SQ sq) { return r_att(occ[0] | occ[1], sq); }
-    template<> inline U64 Board::attack<PieceType::QUEEN>(SQ sq) { return q_att(occ[0] | occ[1], sq); }
-    template<PieceType pt> inline U64 Board::attack(SQ sq)
+    template<> inline U64 BoardInner::attack<PieceType::BISHOP>(SQ sq) const { return b_att(occ[0] | occ[1], sq); }
+    template<> inline U64 BoardInner::attack<PieceType::ROOK>(SQ sq) const { return r_att(occ[0] | occ[1], sq); }
+    template<> inline U64 BoardInner::attack<PieceType::QUEEN>(SQ sq) const { return q_att(occ[0] | occ[1], sq); }
+    template<PieceType pt> inline U64 BoardInner::attack(SQ sq) const
     {
         return moves(static_cast<Piece>((+pt) << 1), sq);
     }

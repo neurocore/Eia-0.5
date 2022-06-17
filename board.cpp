@@ -467,7 +467,7 @@ namespace eia_v0_5
         state->en_passant = sq_(x, y);
     }
 
-    U64 Board::attack(Piece p, SQ sq)
+    U64 BoardInner::attack(Piece p, SQ sq) const
     {
         switch (p)
         {

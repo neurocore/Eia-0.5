@@ -33,6 +33,7 @@ namespace eia_v0_5
 
     const U32 TIME_DEFAULT = 60000;
     const U32 INC_DEFAULT = 1000;
+    const U64 RESPONSE_TIME = 1000;
 
     const U32 MAX_MOVES = 256;
     const U32 MAX_PLY   = 128;

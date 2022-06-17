@@ -19,13 +19,13 @@ namespace eia_v0_5
         switch (gt)
         {
             case Playing:
-                S[0] = new SolverPVS();
+                S[0] = new SolverPVS(this);
                 S[1] = new Reader();
                 break;
 
             case Learning:
-                S[0] = new SolverPVS();
-                S[1] = new SolverPVS();
+                S[0] = new SolverPVS(this);
+                S[1] = new SolverPVS(this);
                 break;
 
             default:
@@ -59,26 +59,52 @@ namespace eia_v0_5
         P->greet();*/
 
         P = new UCI();
-        while (P->parse(this));
+
+        bool running;
+        do
+        {
+            while(!deferred_go.empty())
+            {
+                cmd_go(deferred_go.front());
+                deferred_go.pop();
+            }
+            running = read_input();
+        }
+        while (running);
         delete P;
     }
 
-    void Engine::cmd_go(MS wtime, MS btime, MS winc, MS binc, bool infinite)
+    bool Engine::read_input()
     {
-        MS time = B->to_move() ? wtime + winc : btime + binc;
+        return P->parse(this);
+    }
+
+    void Engine::cmd_go(const CommandGo & go)
+    {
+        MS time = B->to_move()
+                ? go.wtime() + go.winc()
+                : go.btime() + go.binc();
+
         cout << "go " << static_cast<int>(time)
              << "ms" << endl;
 
         execute_for([&](Solver * solver)
         {
             solver->set(B);
-            solver->analysis(infinite);
+            solver->analysis(go.infinite());
             solver->get_move(time);
         });
     }
 
+    void Engine::defer_go(const CommandGo & go)
+    {
+        cmd_stop();
+        deferred_go.push(go);
+    }
+
     void Engine::cmd_setpos(string fen)
     {
+        cmd_stop();
         B->from_fen(fen);
     }
 
@@ -98,11 +124,13 @@ namespace eia_v0_5
 
     void Engine::cmd_newgame()
     {
+        cmd_stop();
         cout << "newgame" << endl;
     }
 
     void Engine::cmd_setoption(string name, int val)
     {
+        cmd_stop();
         cout << "set [" << name << " = " << val << "]" << endl;
     }
 
@@ -113,6 +141,7 @@ namespace eia_v0_5
 
     void Engine::cmd_perft(int depth)
     {
+        cmd_stop();
         S[0]->set(B);
         S[0]->perft(depth);
     }

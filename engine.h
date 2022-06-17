@@ -1,9 +1,11 @@
 #pragma once
 #include <functional>
+#include <queue>
 #include "board.h"
-#include "player.h"
+#include "solver.h"
 
 using std::function;
+using std::queue;
 
 namespace eia_v0_5
 {
@@ -12,6 +14,7 @@ namespace eia_v0_5
     struct Protocol;
     class Engine
     {
+        queue<CommandGo> deferred_go;
         State states[2];
         Board * B;
         Player * S[2];
@@ -21,8 +24,9 @@ namespace eia_v0_5
         explicit Engine(GameType gt);
         ~Engine();
         void start();
+        bool read_input();
 
-        void cmd_go(MS wtime, MS btime, MS winc, MS binc, bool infinite = false);
+        void defer_go(const CommandGo & go);
         void cmd_setpos(string fen);
         void cmd_setmove(string move);
         void cmd_stop();
@@ -36,6 +40,7 @@ namespace eia_v0_5
         enum State { Waiting, Thinking, Error };
 
     private:
+        void cmd_go(const CommandGo & go);
         void execute_for(function<void(Solver *)> f);
 
         State state = State::Waiting;

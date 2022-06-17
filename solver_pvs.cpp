@@ -1,5 +1,6 @@
 #include <cassert>
 #include <iostream>
+#include "engine.h"
 #include "solver_pvs.h"
 #include "movelist.h"
 #include "board.h"
@@ -9,7 +10,7 @@ using namespace std;
 
 namespace eia_v0_5
 {
-    SolverPVS::SolverPVS() : Solver()
+    SolverPVS::SolverPVS(Engine * engine) : Solver(engine)
     {
         B = new Board(states);
         E = new EvalSimple;
@@ -119,8 +120,8 @@ namespace eia_v0_5
 
     bool SolverPVS::time_lack() const
     {
-        if (infinite) return false;
         if (!thinking) return true;
+        if (infinite) return false;
         const MS time_to_move = to_think / 30;
         if (timer.getms() > time_to_move)
         {
@@ -128,6 +129,19 @@ namespace eia_v0_5
             return true;
         }
         return false;
+    }
+
+    void SolverPVS::check_input() const
+    {
+        MS time = timer.getms();
+        if (time - last_response > RESPONSE_TIME)
+        {
+            if (input_available())
+            {
+                engine->read_input();
+            }
+            last_response = time;
+        }
     }
 
     int SolverPVS::ply() const
@@ -138,6 +152,7 @@ namespace eia_v0_5
     int SolverPVS::pvs(int alpha, int beta, int depth)
     {
         if (depth <= 0) return B->eval(E);
+        check_input();
         if (time_lack()) return 0;
 
         const bool in_pv = (beta - alpha) > 1;

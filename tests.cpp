@@ -5,12 +5,13 @@ void Tests::register_tests()
 {
     TEST("MatedTest")
     {
+        Engine * engine = new Engine(GameType::Playing);
         State S[2];
         Board B(S);
 
         B.from_fen("1r3bkr/ppp1p1pp/4Q3/2P1P1B1/1P5N/P7/5RPP/1N1R2K1 b - - 0 27");
         
-        SolverPVS solver;
+        SolverPVS solver(engine);
         solver.set(&B);
         U64 cnt = solver.perft_inner(1);
 

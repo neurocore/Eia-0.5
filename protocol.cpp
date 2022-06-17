@@ -60,7 +60,7 @@ namespace eia_v0_5
                     else if (arg == "binc") binc = val;
                 }
             }
-            E->cmd_go(wtime, btime, winc, binc, infinite);
+            E->defer_go(CommandGo(wtime, btime, winc, binc, infinite));
         }
         else if (word == "position")
         {

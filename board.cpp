@@ -194,9 +194,11 @@ namespace eia_v0_5
             case F_KCASTLE: case F_QCASTLE:
             {
                 const U64 o = occ[0] | occ[1];
-                const SQ ep = static_cast<SQ>((from + to) / 2);
+                const SQ mid = static_cast<SQ>((from + to) / 2);
 
-                if (is_attacked(to, o, 1) || is_attacked(ep, o, 1))
+                if (is_attacked(from, o, 1)
+                ||  is_attacked(mid, o, 1)
+                ||  is_attacked(to, o, 1))
                 {
                     unmake(move);
                     return false;

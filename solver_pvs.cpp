@@ -25,6 +25,7 @@ namespace eia_v0_5
     Move SolverPVS::get_move(MS time)
     {
         timer.set();
+        max_ply = 0;
         nodes = 0;
         to_think = time;
         thinking = true;
@@ -39,7 +40,9 @@ namespace eia_v0_5
             int val = pvs(-INF, INF, depth);
 		    if (!thinking) break;
 
-            cout << "info depth " << depth
+            if (depth > max_ply) max_ply = depth;
+
+            cout << "info depth " << depth << "/" << max_ply
                  << " score ";
 
             if      (val >  MATE) cout << "mate " <<  (INF - val) / 2 + 1;
@@ -151,7 +154,7 @@ namespace eia_v0_5
 
     int SolverPVS::pvs(int alpha, int beta, int depth)
     {
-        if (depth <= 0) return B->eval(E);
+        if (depth <= 0) return qs(alpha, beta); // B->eval(E);
         check_input();
         if (time_lack()) return 0;
 
@@ -216,6 +219,31 @@ namespace eia_v0_5
     #ifdef SEARCH_HASHING
         H->set(B->state->hash, B->state->best, depth, alpha, hash_type);
     #endif
+
+        return alpha;
+    }
+
+    int SolverPVS::qs(int alpha, int beta)
+    {
+        int standpat = B->eval(E);
+        if (standpat >= beta) return beta;
+        if (alpha < standpat) alpha = standpat;
+
+        if (ply() > max_ply) max_ply = ply();
+        nodes++;
+
+        B->init_node();
+        B->generate<true>();
+
+        while (Move move = B->get_next_move())
+        {
+            if (!B->make(move)) continue;
+            int val = -qs(-beta, -alpha);
+            B->unmake(move);
+
+            if (val >= beta) return beta;
+            if (val > alpha) alpha = val;
+        }
 
         return alpha;
     }

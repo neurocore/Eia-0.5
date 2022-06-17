@@ -13,6 +13,7 @@ namespace eia_v0_5
         Timer timer;
 
         U64 nodes;
+        int max_ply;
         State states[MAX_PLY];
         int history[PIECE_N][SQUARE_N];
 
@@ -27,5 +28,6 @@ namespace eia_v0_5
         void check_input() const;
         int ply() const;
         int pvs(int alpha, int beta, int depth);
+        int qs(int alpha, int beta);
     };
 }

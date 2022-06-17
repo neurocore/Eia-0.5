@@ -49,15 +49,16 @@ namespace eia_v0_5
         B->reset();
         B->print();
 
-        P = Protocol::detect();
+        /*P = Protocol::detect();
         if (P == nullptr)
         {
             cout << "have a nice day" << endl;
             state = State::Error;
             return;
         }
+        P->greet();*/
 
-        P->greet();
+        P = new UCI();
         while (P->parse(this));
         delete P;
     }

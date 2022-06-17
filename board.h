@@ -26,7 +26,6 @@ namespace eia_v0_5
     class Board : private BoardInner
     {
     public:
-        explicit Board(State * state) : state(state) { clear(); }
         explicit Board(State * state) : BoardInner(state) { clear(); }
         void print() const;
 
@@ -90,7 +89,9 @@ namespace eia_v0_5
     {
         MoveList & ml = state->ml;
 
-        U64 o = me | opp;
+        const U64 me = occ[wtm];
+        const U64 opp = occ[wtm ^ 1];
+        const U64 o = me | opp;
 
         gen<PieceType::KNIGHT, captures>();
         gen<PieceType::BISHOP, captures>();

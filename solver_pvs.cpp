@@ -36,6 +36,7 @@ namespace eia_v0_5
         for (int depth = 1; depth <= MAX_PLY; depth++)
         {
             int val = pvs(-INF, INF, depth);
+		    if (!thinking) break;
 
             cout << "info depth " << depth
                  << " score ";
@@ -51,7 +52,6 @@ namespace eia_v0_5
 
             best = B->best();
             if (val > MATE || val < -MATE) break;
-		    if (!thinking) break;
         }
 
         cout << "bestmove " << best << endl;

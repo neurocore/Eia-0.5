@@ -17,8 +17,6 @@ namespace eia_v0_5
         int history[PIECE_N][SQUARE_N];
 
     public:
-        SolverPVS() : Solver() { B = new Board(states); E = new EvalSimple; }
-        virtual ~SolverPVS() { delete E; delete B; }
         SolverPVS();
         virtual ~SolverPVS();
         virtual void set(const Board * board) override { B->set(board); }

@@ -36,7 +36,7 @@ namespace eia_v0_5
         string input, word;
         getline(cin, input);
 
-        stringstream ss(input + " 0");
+        stringstream ss(input);
         ss >> word;
 
         if (word == "go")
@@ -49,15 +49,17 @@ namespace eia_v0_5
 
             string arg;
             int val;
-            while (ss >> arg >> val)
+            while (ss >> arg)
             {
-                if      (arg == "wtime") wtime = val;
-                else if (arg == "btime") btime = val;
-                else if (arg == "winc") winc = val;
-                else if (arg == "binc") binc = val;
-                else if (arg == "infinite") infinite = true;
+                if (arg == "infinite") infinite = true;
+                else if (ss >> val)
+                {
+                    if      (arg == "wtime") wtime = val;
+                    else if (arg == "btime") btime = val;
+                    else if (arg == "winc") winc = val;
+                    else if (arg == "binc") binc = val;
+                }
             }
-
             E->cmd_go(wtime, btime, winc, binc, infinite);
         }
         else if (word == "position")
@@ -89,15 +91,6 @@ namespace eia_v0_5
                 {
                     E->cmd_setmove(move);
                 }
-            }
-        }
-        else if (word == "fen")
-        {
-            string fen;
-            getline(ss, fen);
-            if (!fen.empty())
-            {
-                E->cmd_setpos(fen);
             }
         }
         else if (word == "isready")
@@ -132,12 +125,25 @@ namespace eia_v0_5
                 E->cmd_setdebug(arg == "on" ? 1 : 0);
             }
         }
+        else if (word == "fen")
+        {
+            string fen;
+            getline(ss, fen);
+            if (!fen.empty())
+            {
+                E->cmd_setpos(fen);
+            }
+        }
         else if (word == "perft")
         {
-            int depth = 1;
-            ss >> depth;
+            int depth;
+            if (!(ss >> depth)) depth = 1;
 
             E->cmd_perft(depth);
+        }
+        else if (word == "uci")
+        {
+            greet();
         }
         else if (word == "quit")
         {

@@ -12,6 +12,8 @@ namespace eia_v0_5
     using S32 = int;
     using S64 = long long;
 
+    using MB = U32; // megabytes
+
     enum Color { BLACK, WHITE, COLOR_N };
 
     enum SQ : U8

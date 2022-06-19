@@ -29,7 +29,7 @@ namespace eia_v0_5
 
     // | 0..5 | 6..11 | 12..15 | = 16 bits
     // | FROM |  TO   | FLAGS  |
-    enum Move : U16 { Empty };
+    enum Move : U16 { None };
 
     extern Flags recognize_prom(char ch, bool capture = false);
     

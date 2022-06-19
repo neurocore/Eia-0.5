@@ -38,6 +38,8 @@ namespace eia_v0_5
     const U32 MAX_MOVES = 256;
     const U32 MAX_PLY   = 128;
 
+    const MB HASH_SIZE = 8;
+
     const int INF  = 32767;
     const int MATE = 32000;
 }

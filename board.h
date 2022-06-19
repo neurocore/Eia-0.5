@@ -1,9 +1,12 @@
 #pragma once
+#include <iostream>
+#include <cassert>
 #include <string>
 #include "bitboard.h"
 #include "movelist.h"
 #include "magics.h"
 #include "state.h"
+#include "hash.h"
 
 using std::string;
 
@@ -20,7 +23,7 @@ namespace eia_v0_5
 
         State * state;
 
-        BoardInner(State * state) : state(state) {}
+        explicit BoardInner(State * state) : state(state) {}
 
         template<PieceType pt>
         U64 attack(SQ sq) const;
@@ -31,7 +34,6 @@ namespace eia_v0_5
     {
     public:
         explicit Board(State * state) : BoardInner(state) { clear(); }
-        void print() const;
 
         void clear();
         void reset();
@@ -44,6 +46,7 @@ namespace eia_v0_5
 
         bool is_attacked(SQ king, U64 occupied, int opposite = 0) const;
         bool in_check(int opposite = 0) const;
+        bool is_pseudolegal(Move move) const;
 
         bool make(const Move & move, bool self = false);
         void unmake(const Move & move);
@@ -51,16 +54,20 @@ namespace eia_v0_5
         template<bool captures = false>
         void generate();
 
+        template<bool squares = false>
+        void print() const;
+
         template<bool full = false>
         bool operator == (const Board * B) const;
 
         Move recognize(string move) const;
 
-        void init_node() { state->ml.clear(); }
+        void init_node(Move hash_move = None) { state->ml.clear(hash_move); }
         Move get_next_move() const { return state->ml.get_next_move(); }
         
         int to_move() const { return wtm; }
 
+        U64 hash() const { return state->hash; }
         Move & curr() const { return state->curr; }
         Move & best() const { return state->best; }
 
@@ -72,6 +79,8 @@ namespace eia_v0_5
         void parse_fen_color(string str);
         void parse_fen_castling(string str);
         void parse_fen_ep(string str);
+
+        void calc_hash();
 
         template<bool captures = false>
         U64 att_mask();
@@ -234,7 +243,7 @@ namespace eia_v0_5
             //state->pst += E->pst[p][square];
             //state->mkey += matkey[p];
 
-            //state->hash ^= hash_key[p][square];
+            state->hash ^= HT->hash_key[p][square];
             //if (IS_PAWN(p)) state->phash ^= hashKey[p][square];
         }
     }
@@ -253,7 +262,7 @@ namespace eia_v0_5
             //state->pst -= E->pst[p][square];
             //state->mkey -= matkey[p];
 
-            //state->hash ^= hash_key[p][square];
+            state->hash ^= HT->hash_key[p][square];
             //if (IS_PAWN(p)) state->phash ^= hashKey[p][square];
         }
     }
@@ -263,8 +272,8 @@ namespace eia_v0_5
     {
         MoveList & ml = state->ml;
 
-        Piece p = static_cast<Piece>(2 * pt + wtm);
-        const U64 mask = att_mask<captures>();
+        Piece p = to_piece(pt, wtm);
+        U64 mask = att_mask<captures>();
 
         for (U64 bb = piece[p]; bb; bb = rlsb(bb))
 	    {
@@ -274,6 +283,47 @@ namespace eia_v0_5
                 ml.add_move(s, bitscan(att), captures ? F_CAP : F_QUIET);
             }
 	    }
+    }
+
+    template<bool squares>
+    void Board::print() const
+    {
+        const string pieces = "pPnNbBrRqQkK..";
+        const string side = wtm ? "<W>" : "<B>";
+        U64 occupied = occ[0] | occ[1];
+
+        for (int y = 7; y >= 0; y--)
+        {
+            std::cout << RANKS[y] << "|";
+
+            for (int x = 0; x < 8; x++)
+            {
+                SQ s = sq_(x, y);
+                U64 present = bit(s) & occupied;
+
+                if constexpr (!squares)
+                {
+                    std::cout << (present ? pieces[sq[s]] : '.');
+                }
+                else
+                {
+                    int p = NOP;
+                    for (int i = 0; i < PIECE_N; i++)
+                    {
+                        if (bit(s) & piece[i])
+                        {
+                            p = p == NOP ? i : 100;
+                        }
+                    }
+                    if (p == 100) std::cout << "?";
+                    else std::cout << (present ? pieces[p] : '.');
+                }
+            }
+
+            if (y == 0) std::cout << " " << side;
+            std::cout << "\n";
+        }
+        std::cout << " +--------\n  " << FILES << "\n\n";
     }
 
     template<bool full>

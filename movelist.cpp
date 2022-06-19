@@ -8,6 +8,7 @@ namespace eia_v0_5
 {
     void MoveList::add(Move move, int val)
     {
+        if (move == hashmove) return;
         assert(last - first < 256);
         last->move = move;
         last->val = val;
@@ -54,15 +55,26 @@ namespace eia_v0_5
         --last;
     }
 
+    void MoveList::clear(Move hash_move)
+    {
+        last = first = moves;
+        hashmove = None;
+        if (hash_move != None)
+        {
+            add(hash_move, 100000);
+            hashmove = hash_move;
+        }
+    }
+
     Move MoveList::get_next_move()
     {
-        if (empty()) return Move();
+        if (empty()) return None;
         return (first++)->move;
     }
 
     Move MoveList::get_best_move(int lower_bound)
     {
-        if (empty()) return Move();
+        if (empty()) return None;
         MoveVal * best = first;
         for (MoveVal * ptr = first; ptr != last; ++ptr)
         {

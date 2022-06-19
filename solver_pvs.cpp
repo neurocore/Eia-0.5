@@ -12,6 +12,8 @@ namespace eia_v0_5
 {
     SolverPVS::SolverPVS(Engine * engine) : Solver(engine)
     {
+        hash_stats = new HashStats;
+        H = new Hash(hash_stats);
         B = new Board(states);
         E = new EvalBasic;
     }
@@ -20,6 +22,8 @@ namespace eia_v0_5
     {
         delete E;
         delete B;
+        delete H;
+        delete hash_stats;
     }
 
     Move SolverPVS::get_move(MS time)
@@ -34,7 +38,7 @@ namespace eia_v0_5
             for (int s = 0; s < 64; s++)
                 history[p][s] = 0;
 
-        Move best = Empty; 
+        Move best = None; 
         for (int depth = 1; depth <= MAX_PLY; depth++)
         {
             int val = pvs(-INF, INF, depth);
@@ -42,7 +46,8 @@ namespace eia_v0_5
 
             if (depth > max_ply) max_ply = depth;
 
-            cout << "info depth " << depth << "/" << max_ply
+            cout << "info depth " << depth
+                 << " seldepth " << max_ply
                  << " score ";
 
             if      (val >  MATE) cout << "mate " <<  (INF - val) / 2 + 1;
@@ -154,11 +159,12 @@ namespace eia_v0_5
 
     int SolverPVS::pvs(int alpha, int beta, int depth)
     {
-        if (depth <= 0) return qs(alpha, beta); // B->eval(E);
+        if (depth <= 0) return qs(alpha, beta);
         check_input();
         if (time_lack()) return 0;
 
         const bool in_pv = (beta - alpha) > 1;
+        HashType hash_type = HASH_ALPHA;
         bool search_pv = true;
         B->best() = Move();
         int val = -INF;
@@ -166,7 +172,34 @@ namespace eia_v0_5
 
         int legal = 0;
 
-        B->init_node();
+        // 1. Retrieving hash move
+
+        HashEntry * he = 0;
+        Move hash_move = None;
+
+        he = H->get(B->hash());
+        if (he)
+        {
+            if (B->is_pseudolegal(he->move))
+                hash_move = he->move;
+
+            if (ply() > 0) // Not in root
+            {
+                if (he->depth >= depth)
+                {
+                    int v = he->val;
+                    if      (v >  MATE && v <=  INF) v -= ply();
+                    else if (v < -MATE && v >= -INF) v += ply();
+
+                    // Exact score
+                    if (he->type == HASH_EXACT) return v;
+                    else if (he->type == HASH_ALPHA && v <= alpha) return alpha;
+                    else if (he->type == HASH_BETA  && v >= beta) return beta;
+                }
+            }
+        }
+
+        B->init_node(hash_move);
         B->generate<true>();
         B->generate<false>();
 
@@ -194,7 +227,7 @@ namespace eia_v0_5
             if (val > alpha)
             {
                 alpha = val;
-                //hash_type = Hash_Exact;
+                hash_type = HASH_EXACT;
                 B->best() = move;
                 search_pv = false;
 
@@ -204,7 +237,7 @@ namespace eia_v0_5
                         //B->update_killers(move, depth);
 
                     alpha = beta;
-                    //hash_type = Hash_Beta;
+                    hash_type = HASH_BETA;
                     break;
                 }
             }
@@ -216,9 +249,7 @@ namespace eia_v0_5
 		    return in_check > 0 ? -INF + ply() : 0; // contempt();
 	    }
 
-    #ifdef SEARCH_HASHING
-        H->set(B->state->hash, B->state->best, depth, alpha, hash_type);
-    #endif
+        H->set(B->hash(), B->best(), alpha, hash_type, depth, ply());
 
         return alpha;
     }

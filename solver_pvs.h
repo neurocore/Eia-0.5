@@ -2,12 +2,14 @@
 #include "solver.h"
 #include "timer.h"
 #include "state.h"
+#include "hash.h"
 
 namespace eia_v0_5
 {
     class SolverPVS : public Solver
     {
         Board * B;
+        Hash * H;
         Eval * E;
         MS to_think;
         Timer timer;
@@ -16,9 +18,10 @@ namespace eia_v0_5
         int max_ply;
         State states[MAX_PLY];
         int history[PIECE_N][SQUARE_N];
+        HashStats * hash_stats;
 
     public:
-        SolverPVS(Engine * engine);
+        explicit SolverPVS(Engine * engine);
         virtual ~SolverPVS();
         virtual void set(const Board * board) override { B->set(board); }
         virtual Move get_move(MS time) override;

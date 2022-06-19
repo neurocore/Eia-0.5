@@ -23,7 +23,7 @@ class Tests
     unordered_map<string, function<bool()>> tests;
 
 public:
-    Tests(Engine * E) : E(E) { register_tests(); }
+    explicit Tests(Engine * E) : E(E) { register_tests(); }
 
     bool run()
     {

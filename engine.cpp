@@ -1,4 +1,5 @@
 #include <exception>
+#include "hash.h"
 #include "array.h"
 #include "engine.h"
 #include "protocol.h"
@@ -11,6 +12,7 @@ namespace eia_v0_5
     Engine::Engine(GameType gt)
     {
         PT = new PieceTables;
+        HT = new HashTables;
         BBT = new BBTables;
         ARR = new Array;
         M = new Magics;
@@ -41,6 +43,7 @@ namespace eia_v0_5
         delete M;
         delete ARR;
         delete BBT;
+        delete HT;
         delete PT;
     }
 
@@ -85,9 +88,6 @@ namespace eia_v0_5
                 ? go.wtime() + go.winc()
                 : go.btime() + go.binc();
 
-        cout << "go " << static_cast<int>(time)
-             << "ms" << endl;
-
         execute_for([&](Solver * solver)
         {
             solver->set(B);
@@ -111,9 +111,15 @@ namespace eia_v0_5
     void Engine::cmd_setmove(string move)
     {
         Move mv = B->recognize(move);
-        if (mv == Empty) return;
+        if (mv == None) return;
+        if (!B->is_pseudolegal(mv))
+        {
+            cout << "Bad move: " << mv << endl;
+            return;
+        }
 
         B->make(mv, true);
+        std::cout << mv << std::endl;
         B->print();
     }
 

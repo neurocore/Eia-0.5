@@ -17,7 +17,7 @@ namespace eia_v0_5
         mutable bool infinite  = false;
 
     public:
-        Solver(Engine * engine) : engine(engine), Player() {}
+        explicit Solver(Engine * engine) : engine(engine), Player() {}
         void stop() { thinking = false; }
         void debug(bool val) { debugging = val; }
         void analysis(bool val) { infinite = val; }

@@ -10,29 +10,6 @@ using namespace std;
 
 namespace eia_v0_5
 {
-    void Board::print() const
-    {
-        const string pieces = "pPnNbBrRqQkK..";
-        const string side = wtm ? "<W>" : "<B>";
-        U64 occupied = occ[0] | occ[1];
-
-        for (int y = 7; y >= 0; y--)
-        {
-            cout << RANKS[y] << "|";
-
-            for (int x = 0; x < 8; x++)
-            {
-                SQ s = sq_(x, y);
-                U64 present = (BIT << s) & occupied;
-                cout << (present ? pieces[sq[s]] : '.');
-            }
-
-            if (y == 0) cout << " " << side;
-            cout << "\n";
-        }
-        cout << " +--------\n  " << FILES << "\n\n";
-    }
-
     void Board::clear()
     {
         wtm = 1;
@@ -90,6 +67,20 @@ namespace eia_v0_5
         return is_attacked(king, occ[0] | occ[1], opposite);
     }
 
+    bool Board::is_pseudolegal(Move move) const
+    {
+        return true;
+        const SQ from = get_from(move);
+        const SQ to = get_to(move);
+
+        if (!(bit(from) & occ[wtm])) return false;
+        const Piece p = static_cast<Piece>(sq[from]);
+        if (is_pawn(p)) return true;
+        U64 att = attack(p, from);
+
+        return att & bit(to);
+    }
+
     bool Board::make(const Move & move, bool self)
     {
         const SQ from = get_from(move);
@@ -98,12 +89,15 @@ namespace eia_v0_5
         State * old = state;
         if (!self) state++;
         state->castling = old->castling - from - to;
-        state->hash = old->hash; // ^ hash_ep[en_passant] ^ hash_castle[castling];
+        state->hash = old->hash
+                    ^ HT->hash_ep[old->en_passant]
+                    ^ HT->hash_castle[old->castling]
+                    ^ HT->hash_wtm;
         state->cap = static_cast<Piece>(sq[to]);
         state->en_passant = A1;
         state->fifty = 0;
 
-        state->best = Empty;
+        state->best = None;
         state->ml.clear();
 
         const Piece p = static_cast<Piece>(sq[from]);
@@ -206,6 +200,8 @@ namespace eia_v0_5
             }
         }
 
+        state->curr = move;
+
         return true;
     }
 
@@ -284,7 +280,7 @@ namespace eia_v0_5
 
     Move Board::recognize(string move) const
     {
-        if (move.size() < 4) return Empty;
+        if (move.size() < 4) return None;
 
         int x1 = recognize_x(tolower(move[0]));
         int y1 = recognize_y(move[1]);
@@ -292,7 +288,7 @@ namespace eia_v0_5
         int x2 = recognize_x(tolower(move[2]));
         int y2 = recognize_y(move[3]);
 
-        if (x1 < 0 || y1 < 0 || x2 < 0 || y2 < 0) return Empty;
+        if (x1 < 0 || y1 < 0 || x2 < 0 || y2 < 0) return None;
 
         SQ from = sq_(x1, y1);
         SQ to = sq_(x2, y2);
@@ -309,9 +305,9 @@ namespace eia_v0_5
                 else if (to == state->en_passant) flags = F_EP; // En passant
                 else if (y1 == 6)                               // Promotion
                 {
-                    if (move.size() < 5) return Empty;
+                    if (move.size() < 5) return None;
                     flags = recognize_prom(move[4], cap != NOP);
-                    if (flags == F_QUIET) return Empty;
+                    if (flags == F_QUIET) return None;
                 }
             }
             else
@@ -320,9 +316,9 @@ namespace eia_v0_5
                 else if (to == state->en_passant) flags = F_EP; // En passant
                 else if (y1 == 1)                               // Promotion
                 {
-                    if (move.size() < 5) return Empty;
+                    if (move.size() < 5) return None;
                     flags = recognize_prom(move[4], cap != NOP);
-                    if (flags == F_QUIET) return Empty;
+                    if (flags == F_QUIET) return None;
                 }
             }
         }
@@ -350,9 +346,11 @@ namespace eia_v0_5
         parse_fen_castling(castling);
         parse_fen_ep(ep);
 
-        int val;
-        bool success = !!(ss >> val);
-        state->fifty = success ? val : 0;
+        calc_hash();
+
+        int fifty;
+        bool success = !!(ss >> fifty);
+        state->fifty = success ? fifty : 0;
         return true;
     }
 
@@ -461,6 +459,25 @@ namespace eia_v0_5
             else if (ch == '3' || ch == '6') y = ch - '1';
         }
         state->en_passant = sq_(x, y);
+    }
+
+    void Board::calc_hash()
+    {
+        U64 key = EMPTY;
+        for (int i = 0; i < PIECE_N; i++)
+        {
+            for (U64 bb = piece[i]; bb; bb = rlsb(bb))
+            {
+                SQ s = bitscan(bb);
+                key ^= HT->hash_key[i][s];
+            }
+        }
+
+        key ^= HT->hash_castle[state->castling];
+        key ^= HT->hash_ep[state->en_passant];
+        if (wtm) key ^= HT->hash_wtm;
+
+        state->hash = key;
     }
 
     bool Board::check_consistency()

@@ -5,11 +5,13 @@
 #include "magics.h"
 #include "engine.h"
 #include "tests.h"
+#include "hash.h"
 
 using namespace eia_v0_5;
 using namespace std;
 
 PieceTables * eia_v0_5::PT;
+HashTables * eia_v0_5::HT;
 BBTables * eia_v0_5::BBT;
 Magics * eia_v0_5::M;
 Array * eia_v0_5::ARR;

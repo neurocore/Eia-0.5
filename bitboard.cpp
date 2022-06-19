@@ -1,3 +1,4 @@
+#include <iostream>
 #include "utils.h"
 #include "consts.h"
 #include "bitboard.h"
@@ -34,6 +35,11 @@ namespace eia_v0_5
         return os;
     }
 
+    void print64(U64 bb)
+    {
+        cout << BitBoard{bb} << endl;
+    }
+
     inline U64 lsb(U64 bb)
     {
         return bb & (EMPTY - bb);
@@ -42,6 +48,14 @@ namespace eia_v0_5
     inline U64 rlsb(U64 bb)
     {
         return bb & (bb - BIT);
+    }
+
+    inline U64 msb(U64 bb)
+    {
+        unsigned n = 0;
+
+        while (bb >>= 1) n++;
+        return 1ull << n;
     }
                                
 #if (defined(_M_AMD64) || defined(_M_X64)) // [SSE2 x64]

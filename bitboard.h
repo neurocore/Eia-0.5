@@ -34,10 +34,12 @@ namespace eia_v0_5
 
     struct BitBoard { U64 val; }; // newtype idiom
     ostream & operator << (ostream & os, const BitBoard & bb);
+    extern void print64(U64 bb);
 
     extern BBTables * BBT;
     extern U64 lsb(U64 bb);
     extern U64 rlsb(U64 bb);
+    extern U64 msb(U64 bb);
     extern int popcnt(U64 bb);
     extern SQ bitscan(U64 bb);
 }

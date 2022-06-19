@@ -31,7 +31,7 @@ namespace eia_v0_5
             clear();
         }
 
-        void clear()       { last = first = moves; }
+        void clear(Move hash_move = None);
         bool empty() const { return last == first; }
         U64  count() const { return last -  first; }
 

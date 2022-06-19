@@ -64,6 +64,9 @@ namespace eia_v0_5
         Move & curr() const { return state->curr; }
         Move & best() const { return state->best; }
 
+        void restore_path(int ply = 10);
+        bool check_consistency();
+
     private:
         void parse_fen_board(string str);
         void parse_fen_color(string str);

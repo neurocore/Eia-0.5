@@ -36,6 +36,8 @@ namespace eia_v0_5
         string input, word;
         getline(cin, input);
 
+        log << input << endl;
+
         stringstream ss(input);
         ss >> word;
 

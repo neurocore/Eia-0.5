@@ -1,5 +1,5 @@
 #pragma once
-#include <stack>
+#include <fstream>
 #include <iostream>
 #include <sstream>
 #include "engine.h"
@@ -15,6 +15,9 @@ namespace eia_v0_5
 
     struct UCI : public Protocol
     {
+        std::ofstream log;
+        UCI() { log.open("log.txt"); }
+        ~UCI() { log.close(); }
         virtual void greet() override;
         virtual bool parse(Engine * E) override;
     };

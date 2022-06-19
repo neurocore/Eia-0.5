@@ -325,18 +325,14 @@ namespace eia_v0_5
                     if (flags == F_QUIET) return Empty;
                 }
             }
-
-            if (flags == F_QUIET && cap != NOP) flags = F_CAP;
         }
         else if (is_king(pie))
         {
             if      (to - from == 2) flags = F_KCASTLE;
             else if (from - to == 2) flags = F_QCASTLE;
         }
-        else
-        {
-            if (cap != NOP) flags = F_CAP;
-        }
+
+        if (flags == F_QUIET && cap != NOP) flags = F_CAP;
 
         return build_move(from, to, flags);
     }
@@ -465,6 +461,53 @@ namespace eia_v0_5
             else if (ch == '3' || ch == '6') y = ch - '1';
         }
         state->en_passant = sq_(x, y);
+    }
+
+    bool Board::check_consistency()
+    {
+        for (int i = 0; i < PIECE_N; i++)
+        {
+            for (U64 bb = piece[i]; bb; bb = rlsb(bb))
+            {
+                SQ s = bitscan(bb);
+                if (sq[s] != i)
+                {
+                    cout << "check_consistency: sq <-> piece" << endl;
+                    print();
+                    print<true>();
+                    //assert(false);
+                    return false;
+                }
+            }
+        }
+
+        for (int s = 0; s < 64; s++)
+        {
+            int cnt = 0;
+            for (int i = 0; i < PIECE_N; i++)
+            {
+                if (piece[i] & (1ull << s)) cnt++;
+                if (cnt > 1)
+                {
+                    cout << "check_consistency: piece intersection" << endl;
+                    cout << "sq " << static_cast<SQ>(s) << endl;
+                    cout << "piece " << static_cast<Piece>(i) << endl;
+                    print();
+                    print<true>();
+                    //assert(false);
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    void Board::restore_path(int ply)
+    {
+        for (int i = ply; state > 0 && i >= 0; state--, i--)
+        {
+            cout << state->curr << endl;
+        }
     }
 
     U64 BoardInner::attack(Piece p, SQ sq) const

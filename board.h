@@ -62,8 +62,9 @@ namespace eia_v0_5
 
         Move recognize(string move) const;
 
-        void init_node(Move hash_move = None) { state->ml.clear(hash_move); }
-        Move get_next_move() const { return state->ml.get_next_move(); }
+        void init_node(Move hash_move = None);
+        Move get_next_move();
+        Move get_next_move_qs();
         
         int to_move() const { return wtm; }
 

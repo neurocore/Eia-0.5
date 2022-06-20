@@ -200,8 +200,6 @@ namespace eia_v0_5
         }
 
         B->init_node(hash_move);
-        B->generate<true>();
-        B->generate<false>();
 
         while (Move move = B->get_next_move())
         {
@@ -264,9 +262,8 @@ namespace eia_v0_5
         nodes++;
 
         B->init_node();
-        B->generate<true>();
 
-        while (Move move = B->get_next_move())
+        while (Move move = B->get_next_move_qs())
         {
             if (!B->make(move)) continue;
             int val = -qs(-beta, -alpha);

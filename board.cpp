@@ -1,3 +1,4 @@
+#include <exception>
 #include <cassert>
 #include <iostream>
 #include <sstream>
@@ -331,6 +332,73 @@ namespace eia_v0_5
         if (flags == F_QUIET && cap != NOP) flags = F_CAP;
 
         return build_move(from, to, flags);
+    }
+
+    void Board::init_node(Move hash_move)
+    {
+        state->stage = Stage::Hash;
+        state->ml.clear(hash_move);
+    }
+
+    Move Board::get_next_move()
+    {
+        while(true)
+        {
+            Move move = state->ml.get_next_move();
+            if (move) return move;
+
+            switch (state->stage)
+            {
+                case Stage::Hash:
+                    generate<true>();
+                    state->stage = Stage::Attacks;
+                    break;
+
+                case Stage::Attacks:
+                    generate<false>();
+                    state->stage = Stage::Quiet;
+                    break;
+
+                case Stage::Quiet:
+                    state->stage = Stage::Ending;
+                    break;
+
+                case Stage::Ending:
+                    return None;
+
+                default:
+                    throw exception("Stage generator is stalled");
+            }
+        }
+        return None;
+    }
+
+    Move Board::get_next_move_qs()
+    {
+        while(true)
+        {
+            Move move = state->ml.get_next_move();
+            if (move) return move;
+
+            switch (state->stage)
+            {
+                case Stage::Hash:
+                    generate<true>();
+                    state->stage = Stage::Attacks;
+                    break;
+
+                case Stage::Attacks:
+                    state->stage = Stage::Ending;
+                    break;
+
+                case Stage::Ending:
+                    return None;
+
+                default:
+                    throw exception("Stage generator is stalled");
+            }
+        }
+        return None;
     }
 
     bool Board::from_fen(string fen)

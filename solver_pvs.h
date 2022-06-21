@@ -6,6 +6,7 @@
 
 namespace eia_v0_5
 {
+    class History;
     class SolverPVS : public Solver
     {
         Board * B;
@@ -17,7 +18,7 @@ namespace eia_v0_5
         U64 nodes;
         int max_ply;
         State states[MAX_PLY];
-        int history[PIECE_N][SQUARE_N];
+        History * history;
         HashStats * hash_stats;
 
     public:
@@ -27,6 +28,7 @@ namespace eia_v0_5
         virtual Move get_move(MS time) override;
         virtual U64 perft(int depth) override;
         U64 perft_inner(int depth);
+        void shift_killers();
         bool time_lack() const;
         void check_input() const;
         int ply() const;

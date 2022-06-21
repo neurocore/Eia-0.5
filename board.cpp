@@ -134,7 +134,7 @@ namespace eia_v0_5
 
             case F_NPROM: case F_BPROM: case F_RPROM: case F_QPROM:
             {
-                const int prom = 2 * (flags - F_NPROM) + BN + wtm;
+                const int prom = get_prom(move, wtm);
 
                 remove(from);
                 place(to, prom);
@@ -143,7 +143,7 @@ namespace eia_v0_5
 
             case F_NCAPPROM: case F_BCAPPROM: case F_RCAPPROM: case F_QCAPPROM:
             {
-                const int prom = 2 * (flags - F_NCAPPROM) + BN + wtm;
+                const int prom = get_prom(move, wtm);
 
                 remove(from);
                 remove(to);
@@ -175,7 +175,6 @@ namespace eia_v0_5
             }
         }
 
-        //state->hash ^= hash_ep[state->ep] ^ hash_castle[state->castling] ^ hash_wtm;
         wtm ^= 1;
 
         if (in_check(1))
@@ -340,22 +339,24 @@ namespace eia_v0_5
         state->ml.clear(hash_move);
     }
 
-    Move Board::get_next_move()
+    Move Board::get_next_move(const History * history)
     {
         while(true)
         {
-            Move move = state->ml.get_next_move();
+            Move move = state->ml.get_best_move();
             if (move) return move;
 
             switch (state->stage)
             {
                 case Stage::Hash:
                     generate<true>();
+                    value_moves_att();
                     state->stage = Stage::Attacks;
                     break;
 
                 case Stage::Attacks:
                     generate<false>();
+                    value_moves_quiet(history);
                     state->stage = Stage::Quiet;
                     break;
 
@@ -377,7 +378,7 @@ namespace eia_v0_5
     {
         while(true)
         {
-            Move move = state->ml.get_next_move();
+            Move move = state->ml.get_best_move();
             if (move) return move;
 
             switch (state->stage)
@@ -399,6 +400,20 @@ namespace eia_v0_5
             }
         }
         return None;
+    }
+
+    void Board::update_moves_stats(Move move, int depth, History * history)
+    {
+        if (state->killer[0] != move)
+        {
+            state->killer[1] = state->killer[0];
+            state->killer[0] = move;
+        }
+
+        const SQ from = get_from(move);
+        const SQ to = get_to(move);
+        const Piece p = static_cast<Piece>(sq[from]);
+        history->add(p, to, depth);
     }
 
     bool Board::from_fen(string fen)
@@ -546,6 +561,35 @@ namespace eia_v0_5
         if (wtm) key ^= HT->hash_wtm;
 
         state->hash = key;
+    }
+
+    void Board::value_moves_att()
+    {
+        state->ml.value_moves([&](Move move)
+        {
+            const int val[] = {1, 1, 3, 3, 3, 3, 5, 5, 9, 9, 100, 100};
+
+            const Flags flags = get_flags(move);
+            const SQ fr = get_from(move);
+            const SQ to = get_to(move);
+            const int va = val[sq[fr]];
+
+            int vv = flags == F_EP ? val[0] : vv = val[sq[to]];
+            if (is_prom(flags)) vv += val[get_prom(flags)] - val[0];
+
+            const int mvvlva = (vv << 16) | (32767 - va);
+            return vv > va ? mvvlva : -mvvlva;
+        });
+    }
+
+    void Board::value_moves_quiet(const History * history)
+    {
+        state->ml.value_moves([&](Move move)
+        {
+            const SQ fr = get_from(move);
+            const Piece p = static_cast<Piece>(sq[fr]);
+            return history->get(p, fr);
+        });
     }
 
     bool Board::check_consistency()

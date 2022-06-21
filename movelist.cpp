@@ -24,8 +24,12 @@ namespace eia_v0_5
         cout << endl;
     }
 
-    void MoveList::set_values()
+    void MoveList::value_moves(Valuator valuator)
     {
+        for (MoveVal * ptr = first; ptr != last; ptr++)
+        {
+            ptr->val = valuator(ptr->move);
+        }
     }
 
     void MoveList::add_move(SQ from, SQ to, Flags flags)
@@ -76,7 +80,7 @@ namespace eia_v0_5
     {
         if (empty()) return None;
         MoveVal * best = first;
-        for (MoveVal * ptr = first; ptr != last; ++ptr)
+        for (MoveVal * ptr = first + 1; ptr != last; ++ptr)
         {
             if (ptr->val > best->val)
             {

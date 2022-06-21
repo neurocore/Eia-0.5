@@ -12,6 +12,7 @@ namespace eia_v0_5
 {
     SolverPVS::SolverPVS(Engine * engine) : Solver(engine)
     {
+        history = new History;
         hash_stats = new HashStats;
         H = new Hash(hash_stats);
         B = new Board(states);
@@ -23,6 +24,7 @@ namespace eia_v0_5
         delete E;
         delete B;
         delete H;
+        delete history;
         delete hash_stats;
     }
 
@@ -34,9 +36,8 @@ namespace eia_v0_5
         to_think = time;
         thinking = true;
 
-        for (int p = 0; p < PIECE_N; p++)
-            for (int s = 0; s < 64; s++)
-                history[p][s] = 0;
+        history->clear();
+        shift_killers();
 
         Move best = None; 
         for (int depth = 1; depth <= MAX_PLY; depth++)
@@ -82,7 +83,7 @@ namespace eia_v0_5
         B->generate<true>();
         B->generate<false>();
 
-        while (Move move = B->get_next_move())
+        while (Move move = B->get_next_move(history))
         {
             if (!B->make(move)) continue;
             cout << B->prettify(move) << " - ";
@@ -115,7 +116,7 @@ namespace eia_v0_5
         B->generate<false>();
 
         U64 count = EMPTY;
-        while (auto move = B->get_next_move())
+        while (auto move = B->get_next_move(history))
         {
             if (!B->make(move)) continue;
 
@@ -124,6 +125,15 @@ namespace eia_v0_5
             B->unmake(move);
         }
         return count;
+    }
+
+    void SolverPVS::shift_killers()
+    {
+        for (State * s = states; s < states + MAX_PLY - 2; s++)
+        {
+            s->killer[0] = (s + 2)->killer[0];
+            s->killer[1] = (s + 2)->killer[1];
+        }
     }
 
     bool SolverPVS::time_lack() const
@@ -201,7 +211,7 @@ namespace eia_v0_5
 
         B->init_node(hash_move);
 
-        while (Move move = B->get_next_move())
+        while (Move move = B->get_next_move(history))
         {
             if (!B->make(move)) continue;
             legal++;
@@ -231,8 +241,9 @@ namespace eia_v0_5
 
                 if (val >= beta)
                 {
-                    //if (!IS_CAP_OR_PROM(move) && !in_check)
-                        //B->update_killers(move, depth);
+                    int in_check = B->in_check();
+                    if (!is_cap_or_prom(move) && !in_check)
+                        B->update_moves_stats(move, depth, history);
 
                     alpha = beta;
                     hash_type = HASH_BETA;

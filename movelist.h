@@ -1,10 +1,11 @@
 #pragma once
-#include <iterator>
-#include <limits>
+#include <functional>
 #include "moves.h"
 
 namespace eia_v0_5
 {
+    using Valuator = std::function<int(Move)>;
+
     enum class GenStage
     {
         HASH, GEN_CAPS, WIN_CAPS, EQ_CAPS, KILLER1, KILLER2,
@@ -44,7 +45,7 @@ namespace eia_v0_5
         void add_capprom(SQ from, SQ to);
         void print() const;
 
-        void set_values();
+        void value_moves(Valuator valuator);
 
     private:
         void remove(MoveVal * ptr);

@@ -63,8 +63,10 @@ namespace eia_v0_5
         Move recognize(string move) const;
 
         void init_node(Move hash_move = None);
-        Move get_next_move();
+        Move get_next_move(const History * history);
         Move get_next_move_qs();
+
+        void update_moves_stats(Move move, int depth, History * history);
         
         int to_move() const { return wtm; }
 
@@ -82,6 +84,9 @@ namespace eia_v0_5
         void parse_fen_ep(string str);
 
         void calc_hash();
+
+        void value_moves_att();
+        void value_moves_quiet(const History * history);
 
         template<bool captures = false>
         U64 att_mask();

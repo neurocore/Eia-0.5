@@ -49,13 +49,8 @@ namespace eia_v0_5
 
             cout << "info depth " << depth
                  << " seldepth " << max_ply
-                 << " score ";
-
-            if      (val >  MATE) cout << "mate " <<  (INF - val) / 2 + 1;
-            else if (val < -MATE) cout << "mate " << -(INF + val) / 2 - 1;
-            else                  cout << "cp " << val;
-
-            cout << " nodes " << nodes
+                 << " score " << Score{val}
+                 << " nodes " << nodes
                  << " time " << timer.getms()
                  << " pv " << B->best()
                  << endl;
@@ -184,30 +179,11 @@ namespace eia_v0_5
 
         // 1. Retrieving hash move
 
-        HashEntry * he = 0;
-        Move hash_move = None;
+        HashEntry * he = H->get(B->hash(), alpha, beta, depth, ply());
+        if (alpha == beta) return alpha;
+        Move hash_move = he ? he->move : None;
 
-        he = H->get(B->hash());
-        if (he)
-        {
-            if (B->is_pseudolegal(he->move))
-                hash_move = he->move;
-
-            if (ply() > 0) // Not in root
-            {
-                if (he->depth >= depth)
-                {
-                    int v = he->val;
-                    if      (v >  MATE && v <=  INF) v -= ply();
-                    else if (v < -MATE && v >= -INF) v += ply();
-
-                    // Exact score
-                    if (he->type == HASH_EXACT) return v;
-                    else if (he->type == HASH_ALPHA && v <= alpha) return alpha;
-                    else if (he->type == HASH_BETA  && v >= beta) return beta;
-                }
-            }
-        }
+        // Looking all legal moves
 
         B->init_node(hash_move);
 

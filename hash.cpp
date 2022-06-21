@@ -67,16 +67,19 @@ namespace eia_v0_5
         {
             stats->hash_read++;
 
-            if (the->depth >= depth)
+            if (ply > 0)
             {
-                int val = the->val;
-                if      (val >  MATE && val <=  INF) val -= ply;
-                else if (val < -MATE && val >= -INF) val += ply;
+                if (the->depth >= depth)
+                {
+                    int val = static_cast<int>(the->val);
+                    if      (val >  MATE) val -= ply;
+                    else if (val < -MATE) val += ply;
 
-                // Exact score
-                if (the->type == HASH_EXACT) alpha = beta = val;
-                else if (the->type == HASH_ALPHA && val <= alpha) beta = alpha;
-                else if (the->type == HASH_BETA  && val >= beta) alpha = beta;
+                    // Exact score
+                    if (the->type == HASH_EXACT) alpha = beta = val;
+                    else if (the->type == HASH_ALPHA && val <= alpha) beta = alpha;
+                    else if (the->type == HASH_BETA  && val >= beta) alpha = beta;
+                }
             }
             return the;
         }

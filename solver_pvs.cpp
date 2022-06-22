@@ -36,6 +36,7 @@ namespace eia_v0_5
         to_think = time;
         thinking = true;
 
+        H->expire();
         history->clear();
         shift_killers();
 

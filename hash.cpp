@@ -77,8 +77,22 @@ namespace eia_v0_5
 
                     // Exact score
                     if (the->type == HASH_EXACT) alpha = beta = val;
-                    else if (the->type == HASH_ALPHA && val <= alpha) beta = alpha;
-                    else if (the->type == HASH_BETA  && val >= beta) alpha = beta;
+                    else if (the->type == HASH_ALPHA)
+                    {
+                        if (val < beta)
+                        {
+                            if (val <= alpha) beta = alpha = val;
+                            else beta = val;
+                        }
+                    }
+                    else if (the->type == HASH_BETA && val >= beta)
+                    {
+                        if (val > alpha)
+                        {
+                            if (val >= beta) alpha = beta = val;
+                            else alpha = val;
+                        }
+                    }
                 }
             }
             return the;
@@ -91,7 +105,7 @@ namespace eia_v0_5
         stats->hash_write++;
         HashEntry * the = table + (key & (count - 1));
 	
-        //if (/*the->age == age && */the->depth > depth) return;
+        if (the->age == age/* && the->depth > depth*/) return;
 
         if      (val >  MATE && val <=  INF) val += ply;
         else if (val < -MATE && val >= -INF) val -= ply;

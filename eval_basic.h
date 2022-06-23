@@ -17,33 +17,70 @@ namespace eia_v0_5
     template<>
     inline int EvalBasic::evaluate<PAWN>(const BoardInner * I, int wtm) const
     {
+        const U64 own = I->piece[BP ^ wtm];
+        const U64 opp = I->piece[WP ^ wtm];
         const U64 rank_own = wtm ? RANK_5 : RANK_4;
         const U64 rank_opp = wtm ? RANK_7 : RANK_2;
         const int passer_val[] = {0, 0, 0, 5, 10, 20, 35, 50};
+        const int doubled_val[] = {0, -20, -30, -35, -43, -45, -46, -47, -48};
+        const int backward_penalty = 20;
+        const int isolator_penalty = 15;
 
         int val = 0;
-        const U64 own = I->piece[BP ^ wtm];
-        const U64 opp = I->piece[WP ^ wtm];
+
         for (U64 bb = own; bb; bb = rlsb(bb))
         {
-            const SQ sq = bitscan(bb);
+            // 1. Passers and candidates /////////////////////////////////////////
 
-            if (!(front(wtm, sq) & opp)) // Potential candidate passer
+            const SQ sq = bitscan(bb);
+            const U64 sentries = att_span(wtm, sq) & opp;
+            const U64 neighbors = att_span(wtm, sq) & own;
+
+            if (!(front(wtm, sq) & opp)) // half-open file
             {
-                U64 sentries = att_span(wtm, sq) & opp;
-                
-                if (!sentries) // Passer
+                if (!sentries) // passer
                 {
                     val += 3 * passer_val[wtm ? y_(sq) : 7 - y_(sq)];
                 }
-                else if (bb & rank_own) // Candidate on 5th rank
+                else if (bb & rank_own) // candidate on 5th rank
                 {
-                    SQ stop = wtm ? sq + 8 : sq - 8;
-                    U64 helpers = att_span(wtm ^ 1, stop) & own;
+                    const SQ stop = wtm ? sq + 8 : sq - 8;
+                    const U64 helpers = att_span(wtm ^ 1, stop) & own;
                     if (popcnt(helpers) >= popcnt(sentries))
                         val += passer_val[wtm ? y_(sq) : 7 - y_(sq)];
                 }
             }
+
+            // 2. Backward pawn (penalty) ////////////////////////////////////////
+
+            bool found_neighbor = false;
+            const auto dir = wtm ? Dir::U : Dir::D;
+            for (U64 att = I->attack<PAWN>(sq); att; att = shift(att, dir))
+            {
+                if (att & own) // First, find closest neighbor
+                {
+                    found_neighbor = true;
+                    continue;
+                }
+
+                if (found_neighbor) // Do opponent control stop-square?
+                {
+                    if (att & opp) val -= backward_penalty;
+                    break;
+                }
+            }
+
+            // 3. Isolator (penalty) /////////////////////////////////////////////
+
+            if (!(adj_files(sq) & own)) val -= isolator_penalty;
+        }
+
+        // 4. Doubled pawns penalty //////////////////////////////////////////////
+
+        for (int x = 0; x < 8; x++)
+        {
+            U64 file = own & files[x];
+            val -= doubled_val[popcnt(file)];
         }
 
         return val;

@@ -31,6 +31,9 @@ namespace eia_v0_5
     extern const char * ENG_NAME, * ENG_VERS, * ENG_AUTH;
     extern const char * STARTPOS;
 
+    const U64 files[] = {FILE_A, FILE_B, FILE_C, FILE_D, FILE_E, FILE_F, FILE_G, FILE_H};
+    const U64 ranks[] = {RANK_1, RANK_2, RANK_3, RANK_4, RANK_5, RANK_6, RANK_7, RANK_8};
+
     const U32 TIME_DEFAULT = 60000;
     const U32 INC_DEFAULT = 1000;
     const U64 RESPONSE_TIME = 1000;

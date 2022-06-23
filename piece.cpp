@@ -65,10 +65,13 @@ namespace eia_v0_5
         for (SQ sq = A1; sq < SQUARE_N; ++sq)
         {
             att_span[0][sq]  = x_(sq) > 0 ? front[0][sq - 1] : EMPTY;
-            att_span[1][sq]  = x_(sq) > 0 ? front[1][sq - 1] : EMPTY;
-
             att_span[0][sq] |= x_(sq) < 7 ? front[0][sq + 1] : EMPTY;
+
+            att_span[1][sq]  = x_(sq) > 0 ? front[1][sq - 1] : EMPTY;
             att_span[1][sq] |= x_(sq) < 7 ? front[1][sq + 1] : EMPTY;
+
+            adj_files[sq]  = x_(sq) > 0 ? files[x_(sq) - 1] : EMPTY;
+            adj_files[sq] |= x_(sq) < 7 ? files[x_(sq) + 1] : EMPTY;
         }
 
         for (SQ i = A1; i < SQUARE_N; ++i)

@@ -20,6 +20,7 @@ namespace eia_v0_5
         U64 front_one[COLOR_N][SQUARE_N];
         U64 front[COLOR_N][SQUARE_N];
         U64 att_span[COLOR_N][SQUARE_N];
+        U64 adj_files[SQUARE_N];
 
     public:
         PieceTables();
@@ -32,6 +33,7 @@ namespace eia_v0_5
         friend U64 front_one(int color, SQ j);
         friend U64 front(int color, SQ j);
         friend U64 att_span(int color, SQ j);
+        friend U64 adj_files(SQ j);
     };
 
     extern PieceTables * PT;
@@ -48,4 +50,5 @@ namespace eia_v0_5
     extern inline U64 front_one(int color, SQ sq) { return PT->front_one[color][sq]; }
     extern inline U64 front(int color, SQ sq) { return PT->front[color][sq]; }
     extern inline U64 att_span(int color, SQ sq) { return PT->att_span[color][sq]; }
+    extern inline U64 adj_files(SQ sq) { return PT->adj_files[sq]; }
 }

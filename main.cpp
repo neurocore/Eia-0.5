@@ -27,6 +27,7 @@ int main()
     cout << BitBoard{between(B4, E7)};
     cout << BitBoard{front(1, D4)};
     cout << BitBoard{att_span(1, D4)};
+    cout << BitBoard{adj_files(D4)};
 
 #ifdef _DEBUG
     Tests tests(engine);

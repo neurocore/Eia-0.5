@@ -45,10 +45,30 @@ namespace eia_v0_5
 
         for (SQ sq = A1; sq < SQUARE_N; ++sq)
         {
-            forward_one[0][sq] = EMPTY;
-            forward_one[1][sq] = EMPTY;
-            if (y_(sq) < 7) forward_one[0][sq] = (BIT << sq) >> 8;
-            if (y_(sq) > 0) forward_one[1][sq] = (BIT << sq) << 8;
+            front_one[0][sq] = EMPTY;
+            front_one[1][sq] = EMPTY;
+            if (y_(sq) < 7) front_one[0][sq] = (BIT << sq) >> 8;
+            if (y_(sq) > 0) front_one[1][sq] = (BIT << sq) << 8;
+
+            front[0][sq] = EMPTY;
+            front[1][sq] = EMPTY;
+            for (U64 bb = (BIT << sq) >> 8; bb; bb >>= 8)
+            {
+                front[0][sq] |= bb;
+            }
+            for (U64 bb = (BIT << sq) << 8; bb; bb <<= 8)
+            {
+                front[1][sq] |= bb;
+            }
+        }
+
+        for (SQ sq = A1; sq < SQUARE_N; ++sq)
+        {
+            att_span[0][sq]  = x_(sq) > 0 ? front[0][sq - 1] : EMPTY;
+            att_span[1][sq]  = x_(sq) > 0 ? front[1][sq - 1] : EMPTY;
+
+            att_span[0][sq] |= x_(sq) < 7 ? front[0][sq + 1] : EMPTY;
+            att_span[1][sq] |= x_(sq) < 7 ? front[1][sq + 1] : EMPTY;
         }
 
         for (SQ i = A1; i < SQUARE_N; ++i)

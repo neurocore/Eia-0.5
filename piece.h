@@ -17,7 +17,9 @@ namespace eia_v0_5
         U64 att[PIECE_N][SQUARE_N];
         int dir[SQUARE_N][SQUARE_N];
         U64 between[SQUARE_N][SQUARE_N];
-        U64 forward_one[COLOR_N][SQUARE_N];
+        U64 front_one[COLOR_N][SQUARE_N];
+        U64 front[COLOR_N][SQUARE_N];
+        U64 att_span[COLOR_N][SQUARE_N];
 
     public:
         PieceTables();
@@ -27,7 +29,9 @@ namespace eia_v0_5
         friend U64 moves(Piece piece, SQ sq);
         friend int direction(SQ i, SQ j);
         friend U64 between(SQ i, SQ j);
-        friend U64 forward_one(Color color, SQ j);
+        friend U64 front_one(int color, SQ j);
+        friend U64 front(int color, SQ j);
+        friend U64 att_span(int color, SQ j);
     };
 
     extern PieceTables * PT;
@@ -41,5 +45,7 @@ namespace eia_v0_5
     extern inline U64 moves(Piece piece, SQ sq) { return PT->att[piece][sq]; }
     extern inline int direction(SQ i, SQ j) { return PT->dir[i][j]; }
     extern inline U64 between(SQ i, SQ j) { return PT->between[i][j]; }
-    extern inline U64 forward_one(Color color, SQ sq) { return PT->forward_one[color][sq]; }
+    extern inline U64 front_one(int color, SQ sq) { return PT->front_one[color][sq]; }
+    extern inline U64 front(int color, SQ sq) { return PT->front[color][sq]; }
+    extern inline U64 att_span(int color, SQ sq) { return PT->att_span[color][sq]; }
 }

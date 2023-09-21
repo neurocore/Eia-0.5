@@ -2,7 +2,7 @@
 Chess engine. Work in progress
 
 # Usage
-- Built by any C++17 compiler
+- Build with any C++17 compiler
 - Connect to UCI-compatible chess GUI as engine
 
 # Features
